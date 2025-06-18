@@ -1,0 +1,23 @@
+{
+  "name": "alex",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node.js",
+    "dev": "node --watch index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "express": "^5.1.0",
+    "morgan": "^1.10.0",
+    "mysql2": "^3.14.1",
+    "node": "^24.2.0",
+    "node.js": "^0.0.1-security",
+    "promise": "^8.3.0"
+  },
+  "devDependencies": {},
+  "description": ""
+}
