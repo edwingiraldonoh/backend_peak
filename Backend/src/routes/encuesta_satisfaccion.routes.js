@@ -1,6 +1,8 @@
-//import { Router } from 'express';
-import pkg from 'express'; // Importa el módulo completo como 'pkg'
-const { Router } = pkg; // Desestructura 'Router' del objeto 'pkg'
+
+//import pkg from 'express';
+// const { Router } = pkg; 
+
+import { Router } from 'express';
 import { pool } from '../db.js';
 
 const router = Router();
@@ -30,13 +32,13 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
     const {puntuacion, comentarios, fecha_encuesta} = req.body;
 
-    if (!puntuacion || !comentarios || fecha_encuesta) {
+    if (!puntuacion || !comentarios || !fecha_encuesta) {
         return res.status(400).json({error: 'Puntuacion y comentarios necesarios'});
     }
 
     try {
         const [result] = await pool.query(
-            'INSERT INTO encuesta_satisfaccion (puntuacion, comentarios, fecha_encuesta) VALUES (?, ?)',
+            'INSERT INTO encuesta_satisfaccion (puntuacion, comentarios, fecha_encuesta) VALUES (?, ?, ?)',
             [puntuacion, comentarios, fecha_encuesta]
         );
         res.status(201).json({ id: result.insertId, puntuacion, comentarios, fecha_encuesta });
@@ -55,7 +57,7 @@ router.put('/:id', async (req, res) => {
             [puntuacion, comentarios, fecha_encuesta, req.params.id]
         );
 
-        if (result.affectdRows === 0) return res.status(404).json({ error: 'Encuesta no encontrada '});
+        if (result.affectedRows === 0) return res.status(404).json({ error: 'Encuesta no encontrada '});
 
         res.json({ message: 'Encuesta de satisfaccion actualizada correctamente'});
     } catch (error) {
@@ -68,7 +70,7 @@ router.delete('/:id', async (req, res) => {
     try {
         const [result] = await pool.query('DELETE FROM encuesta_satisfaccion WHERE id_encuesta = ?', [req.params.id]);
 
-        if (result.affectdRows === 0) return res.status(404).json({ error: 'Encuesta no encontrada' });
+        if (result.affectedRows === 0) return res.status(404).json({ error: 'Encuesta no encontrada' });
 
         res.json({ message: 'Encuesta eliminada correctamente'})
     } catch (error) {

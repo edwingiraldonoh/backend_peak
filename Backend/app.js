@@ -2,7 +2,7 @@ import express from 'express';
 import morgan from 'morgan';
 import cors from 'cors';
 
-import encuestaRoutes from './src/routes/encuesta_satisfaccion.routes.js'
+import encuestaRoutes from './src/routes/encuesta_satisfaccion.routes.js'; 
 import facturaRoutes from './src/routes/facturacion.routes.js'
 import informeRoutes from './src/routes/informe_inventario.Routes.js'
 import inventarioRoutes from './src/routes/inventario.routes.js'
@@ -23,7 +23,7 @@ app.get('/',(req, res) => {
     res.send('El servidor esta funcionando correctamente');
 });
 
-app.use('api/encuesta_satisfaccion', encuestaRoutes)
+app.use('/api/satisfaction', encuestaRoutes);
 app.use('api/facturacion', facturaRoutes)
 app.use('api/informe_inventario', informeRoutes)
 app.use('api/inventario', inventarioRoutes)
@@ -33,8 +33,24 @@ app.use('/api/productos', productosRoutes)
 app.use('api/usuarios', usuariosRoutes)
 app.use('/api/venta', ventaRoutes)
 
+
+
+
 app.listen(PORT, () => {
     console.log('Servidor ejecutandose en http://localhost:3000')
 });
 
 export default app; 
+
+// import express from 'express';
+// // Asegúrate de que esta ruta sea correcta para tu archivo de rutas
+// import encuestaRoutes from './src/routes/encuesta_satisfaccion.routes.js'; 
+
+// const app = express();
+// app.use(express.json()); // Necesario para parsear el body de las peticiones JSON (POST/PUT)
+
+// // Monta tus rutas bajo el prefijo '/api/satisfaction'
+// // Esto significa que una petición GET a '/' en tu router se alcanzará en '/api/satisfaction/'
+// app.use('/api/satisfaction', encuestaRoutes); 
+
+// export default app; // Exporta la app para que Supertest pueda usarla
