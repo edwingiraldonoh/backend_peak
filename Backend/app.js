@@ -3,7 +3,7 @@ import morgan from 'morgan';
 import cors from 'cors';
 
 import encuestaRoutes from './src/routes/encuesta_satisfaccion.routes.js'; 
-import facturaRoutes from './src/routes/facturacion.routes.js'
+import facturacionRoutes from './src/routes/facturacion.routes.js'; 
 import informeRoutes from './src/routes/informe_inventario.Routes.js'
 import inventarioRoutes from './src/routes/inventario.routes.js'
 import notificacionRoutes from './src/routes/notificacion.routes.js'
@@ -24,7 +24,7 @@ app.get('/',(req, res) => {
 });
 
 app.use('/api/satisfaction', encuestaRoutes);
-app.use('api/facturacion', facturaRoutes)
+app.use('/api/facturas', facturacionRoutes); 
 app.use('api/informe_inventario', informeRoutes)
 app.use('api/inventario', inventarioRoutes)
 app.use('api/inventario', notificacionRoutes)

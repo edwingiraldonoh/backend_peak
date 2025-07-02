@@ -36,7 +36,7 @@ router.post('/', async (req, res) => {
 
     try {
         const [result] = await pool.query(
-            'INSERT INTO factura (metodo_pago, descuentos, impuesto, tipo_facturacion) VALUES (?, ?, ?, ?)',
+            'INSERT INTO factura (fecha_factura, metodo_pago, descuentos, impuesto, tipo_facturacion) VALUES (?, ?, ?, ?, ?)',
             [fecha_factura, metodo_pago, descuentos, impuesto, tipo_facturacion]
         );
         res.status(201).json({ id: result.insertId, fecha_factura, metodo_pago, descuentos, impuesto, tipo_facturacion});
@@ -55,7 +55,7 @@ router.put('/:id', async (req, res) => {
             [fecha_factura, metodo_pago, descuentos, impuesto, tipo_facturacion, req.params.id]
         );
 
-        if (result.affectdRows === 0) return res.status(404).json({ error: 'Factura no encontrada '});
+        if (result.affectedRows === 0) return res.status(404).json({ error: 'Factura no encontrada '});
 
         res.json({ message: 'Factura actualizada correctamente'});
     } catch (error) {
@@ -68,7 +68,7 @@ router.delete('/:id', async (req, res) => {
     try {
         const [result] = await pool.query('DELETE FROM facturacion WHERE id_factura = ?', [req.params.id]);
 
-        if (result.affectdRows === 0) return res.status(404).json({ error: 'Factura no encontrada' });
+        if (result.affectedRows === 0) return res.status(404).json({ error: 'Factura no encontrada' });
 
         res.json({ message: 'Factura eliminada corectamente'})
     } catch (error) {
