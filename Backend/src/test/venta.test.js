@@ -1,10 +1,6 @@
-// Importa las dependencias necesarias para el testing
 import request from 'supertest';
 import express from 'express';
-import { pool } from '../db.js'; // Asegúrate de que la ruta a tu pool de base de datos sea correcta
-
-// Importa el router que quieres testear
-// Asumiendo que venta.routes.js está en src/routes/ y el archivo de test está en src/test/
+import { pool } from '../db.js'; 
 import ventaRoutes from '../routes/venta.routes.js';
 
 // Mockea el módulo 'db.js' para controlar el comportamiento de la base de datos
@@ -115,7 +111,7 @@ describe('venta.routes.js', () => {
         });
 
         test('Debería devolver 400 si faltan campos requeridos', async () => {
-            const incompleteVenta = { fecha_venta: '2024-07-03', total_venta: 50.00 }; // Faltan comision, mesero_encargado
+            const incompleteVenta = { fecha_venta: '2024-07-03', total_venta: 50.00 };
 
             const res = await request(app)
                 .post('/ventas')

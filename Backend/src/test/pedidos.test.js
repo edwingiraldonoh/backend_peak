@@ -1,10 +1,6 @@
-// Importa las dependencias necesarias para el testing
 import request from 'supertest';
 import express from 'express';
-import { pool } from '../db.js'; // Asegúrate de que la ruta a tu pool de base de datos sea correcta
-
-// Importa el router que quieres testear
-// Asumiendo que pedidos.routes.js está en src/routes/ y el archivo de test está en src/test/
+import { pool } from '../db.js'; 
 import pedidosRoutes from '../routes/pedidos.routes.js';
 
 // Mockea el módulo 'db.js' para controlar el comportamiento de la base de datos
@@ -16,7 +12,7 @@ jest.mock('../db.js', () => ({
 
 // Crea una aplicación Express para testear el router
 const app = express();
-app.use(express.json()); // Necesario para parsear el body de las peticiones
+app.use(express.json());
 app.use('/pedidos', pedidosRoutes); // Monta el router en una ruta base
 
 describe('pedidos.routes.js', () => {
@@ -63,7 +59,7 @@ describe('pedidos.routes.js', () => {
     describe('GET /pedidos/:id', () => {
         test('Debería obtener un pedido por ID', async () => {
             const mockPedido = { id_pedido: 1, fecha_pedido: '2024-01-01', estado_pedido: 'pendiente', cantidad: 2, tiempo_entrega_estimado: '2 días', detalles_pedido: 'Artículo A', resumen_pedido: 'Resumen A', total_pagar: 25.00 };
-            pool.query.mockResolvedValueOnce([[mockPedido]]); // Nota el doble array para simular rows[0]
+            pool.query.mockResolvedValueOnce([[mockPedido]]);
 
             const res = await request(app).get('/pedidos/1');
 

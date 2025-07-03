@@ -1,10 +1,7 @@
-// Importa las dependencias necesarias para el testing
 import request from 'supertest';
 import express from 'express';
-import { pool } from '../db.js'; // Asegúrate de que la ruta a tu pool de base de datos sea correcta
+import { pool } from '../db.js'; 
 
-// Importa el router que quieres testear
-// RUTA CORREGIDA: Asumiendo que informe_inventario.Routes.js está en src/routes/
 // y el archivo de test está en src/test/
 import informeInventarioRoutes from '../routes/informe_inventario.Routes.js';
 

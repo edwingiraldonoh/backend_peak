@@ -1,31 +1,22 @@
-// src/test/facturacion.test.js
-
 import request from 'supertest';
-import express from 'express'; // Se necesita express para crear una app de prueba
-import { jest } from '@jest/globals'; // Para mocking en ES Modules
+import express from 'express'; 
+import { jest } from '@jest/globals'; 
 
-// Mockear el módulo db.js
-// Esto es crucial para que los tests no intenten conectarse a una base de datos real
-// La ruta se ajusta a '../db.js' porque el test está en 'src/test/' y db.js en 'src/'
-jest.mock('../db.js', () => ({ // CAMBIADO: de '../src/db.js' a '../db.js'
+jest.mock('../db.js', () => ({ 
   pool: {
     query: jest.fn(), // Mockea la función query del pool
   },
 }));
 
-// Importa el router después de mockear db.js para que use el mock
-// Ajusta la ruta según la ubicación de tu archivo facturacion.routes.js
-// La ruta se ajusta a '../routes/facturacion.routes.js' porque el test está en 'src/test/' y el router en 'src/routes/'
-import facturacionRoutes from '../routes/facturacion.routes.js'; // CAMBIADO: de '../src/routes/facturacion.routes.js' a '../routes/facturacion.routes.js'
+
+import facturacionRoutes from '../routes/facturacion.routes.js'; 
 
 // Crea una instancia de Express para Supertest
 const app = express();
 app.use(express.json()); // Necesario para parsear el body en peticiones POST/PUT
 app.use('/api/facturas', facturacionRoutes); // Monta las rutas en un prefijo
 
-// Importa el pool mockeado para poder manipularlo en los tests
-// La ruta se ajusta a '../db.js' por la misma razón que el mock
-import { pool } from '../db.js'; // CAMBIADO: de '../src/db.js' a '../db.js'
+import { pool } from '../db.js'; 
 
 describe('Rutas de Facturación', () => {
 
@@ -110,19 +101,14 @@ describe('Rutas de Facturación', () => {
 
       expect(res.statusCode).toEqual(201);
       expect(res.body).toEqual({ id: 3, ...newFactura });
-      // NOTA: La consulta SQL en tu archivo original 'facturacion.routes.js' para POST
-      // tiene una discrepancia entre el número de placeholders y los valores pasados.
-      // Asumo que la intención es incluir 'fecha_factura' en la inserción y que la tabla es 'facturacion'.
-      // La consulta debería ser: 'INSERT INTO facturacion (fecha_factura, metodo_pago, descuentos, impuesto, tipo_facturacion) VALUES (?, ?, ?, ?, ?)'
-      // Si tu tabla es 'factura', ajusta la expectativa del test.
       expect(pool.query).toHaveBeenCalledWith(
-        'INSERT INTO factura (fecha_factura, metodo_pago, descuentos, impuesto, tipo_facturacion) VALUES (?, ?, ?, ?, ?)', // Esta es la consulta de tu archivo original
+        'INSERT INTO factura (fecha_factura, metodo_pago, descuentos, impuesto, tipo_facturacion) VALUES (?, ?, ?, ?, ?)',
         [newFactura.fecha_factura, newFactura.metodo_pago, newFactura.descuentos, newFactura.impuesto, newFactura.tipo_facturacion]
       );
     });
 
     it('debería devolver 400 si faltan campos requeridos', async () => {
-      const invalidFactura = { fecha_factura: '2023-07-01', metodo_pago: 'Transferencia' }; // Faltan descuentos, impuesto, tipo_facturacion
+      const invalidFactura = { fecha_factura: '2023-07-01', metodo_pago: 'Transferencia' };
 
       const res = await request(app)
         .post('/api/facturas')
@@ -152,7 +138,6 @@ describe('Rutas de Facturación', () => {
     it('debería actualizar una factura existente', async () => {
       const updatedFactura = { fecha_factura: '2023-07-02', metodo_pago: 'Crédito', descuentos: 20, impuesto: 12, tipo_facturacion: 'Venta' };
       // Simula el resultado de una actualización exitosa (affectedRows > 0)
-      // NOTA: Tu código original tiene 'affectdRows' (typo). Asumo que debería ser 'affectedRows'.
       pool.query.mockResolvedValueOnce([{ affectedRows: 1 }]); 
 
       const res = await request(app)
@@ -169,15 +154,14 @@ describe('Rutas de Facturación', () => {
 
     it('debería devolver 404 si la factura a actualizar no se encuentra', async () => {
       const updatedFactura = { fecha_factura: '2023-07-02', metodo_pago: 'Crédito', descuentos: 20, impuesto: 12, tipo_facturacion: 'Venta' };
-      // NOTA: Tu código original tiene 'affectdRows' (typo). Asumo que debería ser 'affectedRows'.
-      pool.query.mockResolvedValueOnce([{ affectedRows: 0 }]); // No se afectaron filas
+      pool.query.mockResolvedValueOnce([{ affectedRows: 0 }]);
 
       const res = await request(app)
         .put('/api/facturas/999')
         .send(updatedFactura);
 
       expect(res.statusCode).toEqual(404);
-      expect(res.body).toEqual({ error: 'Factura no encontrada ' }); // Nota el espacio al final del mensaje en tu código original
+      expect(res.body).toEqual({ error: 'Factura no encontrada ' });
       expect(pool.query).toHaveBeenCalled();
     });
 
@@ -198,18 +182,16 @@ describe('Rutas de Facturación', () => {
   // Test para DELETE /api/facturas/:id (eliminar factura)
   describe('DELETE /api/facturas/:id', () => {
     it('debería eliminar una factura existente', async () => {
-      // NOTA: Tu código original tiene 'affectdRows' (typo). Asumo que debería ser 'affectedRows'.
       pool.query.mockResolvedValueOnce([{ affectedRows: 1 }]); // Simula eliminación exitosa
 
       const res = await request(app).delete('/api/facturas/1');
 
       expect(res.statusCode).toEqual(200);
-      expect(res.body).toEqual({ message: 'Factura eliminada corectamente' }); // Nota el typo 'corectamente' en tu código original
+      expect(res.body).toEqual({ message: 'Factura eliminada corectamente' });
       expect(pool.query).toHaveBeenCalledWith('DELETE FROM facturacion WHERE id_factura = ?', ['1']);
     });
 
     it('debería devolver 404 si la factura a eliminar no se encuentra', async () => {
-      // NOTA: Tu código original tiene 'affectdRows' (typo). Asumo que debería ser 'affectedRows'.
       pool.query.mockResolvedValueOnce([{ affectedRows: 0 }]); // No se afectaron filas
 
       const res = await request(app).delete('/api/facturas/999');

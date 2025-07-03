@@ -1,10 +1,6 @@
-// Importa las dependencias necesarias para el testing
 import request from 'supertest';
 import express from 'express';
-import { pool } from '../db.js'; // Asegúrate de que la ruta a tu pool de base de datos sea correcta
-
-// Importa el router que quieres testear
-// Asumiendo que productos.routes.js está en src/routes/ y el archivo de test está en src/test/
+import { pool } from '../db.js';
 import productosRoutes from '../routes/productos.routes.js';
 
 // Mockea el módulo 'db.js' para controlar el comportamiento de la base de datos
@@ -108,12 +104,12 @@ describe('productos.routes.js', () => {
             expect(pool.query).toHaveBeenCalledTimes(1);
             expect(pool.query).toHaveBeenCalledWith(
                 'INSERT INTO productos (nombre_producto, descripcion_producto, precio_producto, tiempo_preparacion categoria) VALUES (?, ?, ?, ?)',
-                [newProducto.nombre_producto, newProducto.descripcion_producto, newProducto.precio_producto, newProducto.categoria] // Asegúrate de que los parámetros coincidan con tu query
+                [newProducto.nombre_producto, newProducto.descripcion_producto, newProducto.precio_producto, newProducto.categoria] 
             );
         });
 
         test('Debería devolver 400 si faltan campos requeridos', async () => {
-            const incompleteProducto = { nombre_producto: 'Producto Incompleto', precio_producto: 5.00 }; // Faltan descripcion_producto, tiempo_preparacion, categoria
+            const incompleteProducto = { nombre_producto: 'Producto Incompleto', precio_producto: 5.00 };
 
             const res = await request(app)
                 .post('/productos')

@@ -1,21 +1,15 @@
-// src/test/encuesta_satisfaccion.test.js
-
 import request from 'supertest';
 import express from 'express'; // Necesitamos express para crear una app de prueba
 import { jest } from '@jest/globals'; // Para mocking en ES Modules
 
 // Mockear el módulo db.js
 // Esto es crucial para que los tests no intenten conectarse a una base de datos real
-// La ruta se ajusta a '../db.js' porque el test está en 'src/test/' y db.js en 'src/'
 jest.mock('../db.js', () => ({
   pool: {
     query: jest.fn(), // Mockea la función query del pool
   },
 }));
 
-// Importa el router después de mockear db.js para que use el mock
-// La ruta se ajusta a '../routes/encuesta_satisfaccion.routes.js'
-// porque el test está en 'src/test/' y el router en 'src/routes/'
 import encuestaRoutes from '../routes/encuesta_satisfaccion.routes.js'; 
 
 // Crea una instancia de Express para Supertest
@@ -117,7 +111,7 @@ describe('Rutas de Encuesta de Satisfacción', () => {
     });
 
     it('debería devolver 400 si faltan puntuacion o comentarios', async () => {
-      const invalidSurvey = { comentarios: 'Faltan datos', fecha_encuesta: '2023-07-01' }; // Falta puntuacion
+      const invalidSurvey = { comentarios: 'Faltan datos', fecha_encuesta: '2023-07-01' }; 
 
       const res = await request(app)
         .post('/api/satisfaction')
