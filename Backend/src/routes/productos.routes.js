@@ -55,7 +55,7 @@ router.put('/:id', async (req, res) => {
             [nombre_producto, descripcion_producto, precio_producto, tiempo_preparacion, categoria, req.params.id]
         );
 
-        if (result.affectdRows === 0) return res.status(404).json({ error: 'Producto no encontrado '});
+        if (result.affectedRows === 0) return res.status(404).json({ error: 'Producto no encontrado '});
 
         res.json({ message: 'Producto actualizado correctamente'});
     } catch (error) {
@@ -68,7 +68,7 @@ router.delete('/:id', async (req, res) => {
     try {
         const [result] = await pool.query('DELETE FROM productos WHERE id_producto = ?', [req.params.id]);
 
-        if (result.affectdRows === 0) return res.status(404).json({ error: 'Producto no encontrado' });
+        if (result.affectedRows === 0) return res.status(404).json({ error: 'Producto no encontrado' });
 
         res.json({ message: 'Producto eliminado corectamente'})
     } catch (error) {

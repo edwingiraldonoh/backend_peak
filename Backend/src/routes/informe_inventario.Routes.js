@@ -55,7 +55,7 @@ router.put('/:id', async (req, res) => {
             [fecha_informe, descripcion_informe, req.params.id]
         );
 
-        if (result.affectdRows === 0) return res.status(404).json({ error: 'Informe no encontrado '});
+        if (result.affectedRows === 0) return res.status(404).json({ error: 'Informe no encontrado '});
 
         res.json({ message: 'Informe de inventario actualizado correctamente'});
     } catch (error) {
@@ -68,7 +68,7 @@ router.delete('/:id', async (req, res) => {
     try {
         const [result] = await pool.query('DELETE FROM informe_inventario WHERE id_informe = ?', [req.params.id]);
 
-        if (result.affectdRows === 0) return res.status(404).json({ error: 'Informe no encontrado' });
+        if (result.affectedRows === 0) return res.status(404).json({ error: 'Informe no encontrado' });
 
         res.json({ message: 'Informe eliminado correctamente'})
     } catch (error) {

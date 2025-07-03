@@ -28,7 +28,7 @@ router.get('/:id', async (req, res) => {
 
 //Crear una nueva venta
 router.post('/', async (req, res) => {
-    const {fecha_venta, total_venta, mesero_encargado, comision} = req.body;
+    const {fecha_venta, total_venta, comision, mesero_encargado} = req.body;
 
     if (!fecha_venta || !total_venta || !comision || !mesero_encargado) {
         return res.status(400).json({error: 'Datos requeridos'});
@@ -36,10 +36,10 @@ router.post('/', async (req, res) => {
 
     try {
         const [result] = await pool.query(
-            'INSERT INTO venta (fecha_venta, total_venta, mesero_encargado, comision) VALUES (?, ?, ?)',
-            [nombre, descripcion, precio]
+            'INSERT INTO venta (fecha_venta, total_venta, comision, mesero_encargado) VALUES (?, ?, ?, ?)',
+            [fecha_venta, total_venta, comision, mesero_encargado]
         );
-        res.status(201).json({ id: result.insertId, fecha_venta, total_venta, mesero_encargado, comision });
+        res.status(201).json({ id: result.insertId, fecha_venta, total_venta, comision, mesero_encargado});
     } catch (error) {
         res.status(500).json({ error: 'Error al crear la venta' });
     }
@@ -47,15 +47,15 @@ router.post('/', async (req, res) => {
 
 //Actualizar una venta existente
 router.put('/:id', async (req, res) => {
-    const { fecha_venta, total_venta, mesero_encargado, comision } = req.body;
+    const { fecha_venta, total_venta, comision, mesero_encargado, } = req.body;
 
     try {
         const [result] = await pool.query(
-            'UPDATE venta SET fecha_venta = ?, total_venta = ?, mesero_encargado = ?, comision = ? WHERE id_venta = ?',
-            [fecha_venta, total_venta, mesero_encargado, comision, req.params.id]
+            'UPDATE venta SET fecha_venta = ?, total_venta = ?, comision = ?, mesero_encargado = ? WHERE id_venta = ?',
+            [fecha_venta, total_venta, comision, mesero_encargado, req.params.id]
         );
 
-        if (result.affectdRows === 0) return res.status(404).json({ error: 'venta no encontrada '});
+        if (result.affectedRows === 0) return res.status(404).json({ error: 'venta no encontrada '});
 
         res.json({ message: 'Venta actualizada correctamente'});
     } catch (error) {
@@ -68,7 +68,7 @@ router.delete('/:id', async (req, res) => {
     try {
         const [result] = await pool.query('DELETE FROM venta WHERE id_venta = ?', [req.params.id]);
 
-        if (result.affectdRows === 0) return res.status(404).json({ error: 'Venta no encontrada' });
+        if (result.affectedRows === 0) return res.status(404).json({ error: 'Venta no encontrada' });
 
         res.json({ message: 'Venta eliminada corectamente'})
     } catch (error) {

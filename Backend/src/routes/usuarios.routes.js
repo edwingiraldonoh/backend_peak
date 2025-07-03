@@ -55,7 +55,7 @@ router.put('/:id', async (req, res) => {
             [nombre_usuario, apellido_usuario ,contraseña, correo_electronico, telefono, fecha_creacion, fecha_modificacion, req.params.id]
         );
 
-        if (result.affectdRows === 0) return res.status(404).json({ error: 'Usuario no encontrado '});
+        if (result.affectedRows === 0) return res.status(404).json({ error: 'Usuario no encontrado '});
 
         res.json({ message: 'Usuario actualizado correctamente'});
     } catch (error) {
@@ -68,7 +68,7 @@ router.delete('/:id', async (req, res) => {
     try {
         const [result] = await pool.query('DELETE FROM usuarios WHERE id_usuario = ?', [req.params.id]);
 
-        if (result.affectdRows === 0) return res.status(404).json({ error: 'Usuario no encontrado' });
+        if (result.affectedRows === 0) return res.status(404).json({ error: 'Usuario no encontrado' });
 
         res.json({ message: 'Usuario eliminado corectamente'})
     } catch (error) {

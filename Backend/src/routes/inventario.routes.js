@@ -55,7 +55,7 @@ router.put('/:id', async (req, res) => {
             [cantidad_disponible, unidad_medida, fecha_actualizacion, alerta_stock, req.params.id]
         );
 
-        if (result.affectdRows === 0) return res.status(404).json({ error: 'Inventario no encontrado '});
+        if (result.affectedRows === 0) return res.status(404).json({ error: 'Inventario no encontrado '});
 
         res.json({ message: 'Inventario actualizado correctamente'});
     } catch (error) {
@@ -68,7 +68,7 @@ router.delete('/:id', async (req, res) => {
     try {
         const [result] = await pool.query('DELETE FROM inventario WHERE id_inventario = ?', [req.params.id]);
 
-        if (result.affectdRows === 0) return res.status(404).json({ error: 'Inventario no encontrado' });
+        if (result.affectedRows === 0) return res.status(404).json({ error: 'Inventario no encontrado' });
 
         res.json({ message: 'Inventario eliminado corectamente'})
     } catch (error) {

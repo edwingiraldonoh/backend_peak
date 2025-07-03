@@ -55,7 +55,7 @@ router.put('/:id', async (req, res) => {
             [mensaje_notificacion, fecha_notificacion, estado_notificacion, destinatario, req.params.id]
         );
 
-        if (result.affectdRows === 0) return res.status(404).json({ error: 'Notificacion no encontrada '});
+        if (result.affectedRows === 0) return res.status(404).json({ error: 'Notificacion no encontrada '});
 
         res.json({ message: 'Notificacion actualizada correctamente'});
     } catch (error) {
@@ -68,7 +68,7 @@ router.delete('/:id', async (req, res) => {
     try {
         const [result] = await pool.query('DELETE FROM notificacion WHERE id_notificacion = ?', [req.params.id]);
 
-        if (result.affectdRows === 0) return res.status(404).json({ error: 'Notificacion no encontrada' });
+        if (result.affectedRows === 0) return res.status(404).json({ error: 'Notificacion no encontrada' });
 
         res.json({ message: 'Notificacion eliminada corectamente'})
     } catch (error) {

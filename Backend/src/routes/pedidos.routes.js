@@ -55,7 +55,7 @@ router.put('/:id', async (req, res) => {
             [fecha_pedido, estado_pedido, cantidad, tiempo_entrega_estimado, detalles_pedido, resumen_pedido, total_pagar, req.params.id]
         );
 
-        if (result.affectdRows === 0) return res.status(404).json({ error: 'Pedido no encontrada '});
+        if (result.affectedRows === 0) return res.status(404).json({ error: 'Pedido no encontrada '});
 
         res.json({ message: 'Pedido actualizada correctamente'});
     } catch (error) {
@@ -68,7 +68,7 @@ router.delete('/:id', async (req, res) => {
     try {
         const [result] = await pool.query('DELETE FROM pedidos WHERE id_pedido = ?', [req.params.id]);
 
-        if (result.affectdRows === 0) return res.status(404).json({ error: 'Pedido no encontrado' });
+        if (result.affectedRows === 0) return res.status(404).json({ error: 'Pedido no encontrado' });
 
         res.json({ message: 'Pedido eliminado corectamente'})
     } catch (error) {
