@@ -3,17 +3,17 @@ import express from 'express';
 import { pool } from '../db.js'; 
 import ventaRoutes from '../routes/venta.routes.js';
 
-// Mockea el módulo 'db.js' para controlar el comportamiento de la base de datos
+//Mockea el módulo 'db.js' para controlar el comportamiento de la base de datos
 jest.mock('../db.js', () => ({
     pool: {
         query: jest.fn(), // Mockea la función query del pool
     },
 }));
 
-// Crea una aplicación Express para testear el router
+//Crea una aplicación Express para testear el router
 const app = express();
-app.use(express.json()); // Necesario para parsear el body de las peticiones
-app.use('/ventas', ventaRoutes); // Monta el router en una ruta base
+app.use(express.json()); //Necesario para parsear el body de las peticiones
+app.use('/ventas', ventaRoutes); //Monta el router en una ruta base
 
 describe('venta.routes.js', () => {
     // Limpia los mocks antes de cada test
