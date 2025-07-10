@@ -28,18 +28,18 @@ router.get('/:id', async (req, res) => {
 
 //Crear una nuevo pedido
 router.post('/', async (req, res) => {
-    const {fecha_pedido, estado_pedido, cantidad, tiempo_entrega_estimado, detalles_pedido, resumen_pedido, total_pagar} = req.body;
+    const {id_pedido, id_usuario, id_producto, fecha_pedido, estado_pedido, cantidad, tiempo_entrega_estimado, detalles_pedido, resumen_pedido, total_pagar} = req.body;
 
-    if (!fecha_pedido || !estado_pedido || !cantidad || !tiempo_entrega_estimado|| !detalles_pedido ||!total_pagar ) {
+    if (!id_pedido || !id_usuario || !id_producto || !fecha_pedido || !estado_pedido || !cantidad || !tiempo_entrega_estimado|| !detalles_pedido ||!total_pagar ) {
         return res.status(400).json({error: 'Datos requeridos'});
     }
 
     try {
         const [result] = await pool.query(
-            'INSERT INTO pedidos (fecha_pedido, estado_pedido, cantidad, tiempo_entrega_estimado, detalles_pedido, resumen_pedido, total_pagar) VALUES (?, ?, ?, ?, ?)',
-            [fecha_pedido, estado_pedido, cantidad, tiempo_entrega_estimado, detalles_pedido, resumen_pedido, total_pagar]
+            'INSERT INTO pedidos (id_pedido, id_usuario, id_producto, fecha_pedido, estado_pedido, cantidad, tiempo_entrega_estimado, detalles_pedido, resumen_pedido, total_pagar) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            [id_pedido, id_usuario, id_producto, fecha_pedido, estado_pedido, cantidad, tiempo_entrega_estimado, detalles_pedido, resumen_pedido, total_pagar]
         );
-        res.status(201).json({ id: result.insertId, fecha_pedido, estado_pedido, cantidad, tiempo_entrega_estimado, detalles_pedido, resumen_pedido, total_pagar });
+        res.status(201).json({ id: result.insertId, id_pedido, id_usuario, id_producto, fecha_pedido, estado_pedido, cantidad, tiempo_entrega_estimado, detalles_pedido, resumen_pedido, total_pagar });
     } catch (error) {
         res.status(500).json({ error: 'Error al crear el pedido' });
     }
@@ -47,12 +47,12 @@ router.post('/', async (req, res) => {
 
 //Actualizar un pedido existente
 router.put('/:id', async (req, res) => {
-    const { fecha_pedido, estado_pedido,  cantidad, detalles_pedido, tiempo_entrega_estimado, resumen_pedido, total_pagar } = req.body;
+    const {id_usuario, id_producto, fecha_pedido, estado_pedido,  cantidad, detalles_pedido, tiempo_entrega_estimado, resumen_pedido, total_pagar } = req.body;
 
     try {
         const [result] = await pool.query(
-            'UPDATE pedidos SET fecha_pedido = ?, estado_pedido = ?, cantidad = ?, tiempo_entrega_estimado = ?, detalles_pedido = ?, resumen_pedido = ?, total_pagar = ? WHERE id_pedido = ?',
-            [fecha_pedido, estado_pedido, cantidad, tiempo_entrega_estimado, detalles_pedido, resumen_pedido, total_pagar, req.params.id]
+            'UPDATE pedidos SET id_usuario = ?, id_producto = ?, fecha_pedido = ?, estado_pedido = ?, cantidad = ?, tiempo_entrega_estimado = ?, detalles_pedido = ?, resumen_pedido = ?, total_pagar = ? WHERE id_pedido = ?',
+            [id_usuario, id_producto, fecha_pedido, estado_pedido, cantidad, tiempo_entrega_estimado, detalles_pedido, resumen_pedido, total_pagar, req.params.id]
         );
 
         if (result.affectedRows === 0) return res.status(404).json({ error: 'Pedido no encontrada '});

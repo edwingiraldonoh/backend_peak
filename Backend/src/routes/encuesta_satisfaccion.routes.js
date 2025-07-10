@@ -30,18 +30,18 @@ router.get('/:id', async (req, res) => {
 
 //Crear una nueva encuesta de satisfaccion
 router.post('/', async (req, res) => {
-    const {puntuacion, comentarios, fecha_encuesta} = req.body;
+    const {id_encuesta, id_usuario, id_pedido, puntuacion, comentarios, fecha_encuesta} = req.body;
 
-    if (!puntuacion || !comentarios || !fecha_encuesta) {
-        return res.status(400).json({error: 'Puntuacion y comentarios necesarios'});
+    if (!id_encuesta || !id_usuario || !id_pedido || !puntuacion || !comentarios || !fecha_encuesta) {
+        return res.status(400).json({error: 'Puntuacion, comentarios necesarios y fecha'});
     }
 
     try {
         const [result] = await pool.query(
-            'INSERT INTO encuesta_satisfaccion (puntuacion, comentarios, fecha_encuesta) VALUES (?, ?, ?)',
-            [puntuacion, comentarios, fecha_encuesta]
+            'INSERT INTO encuesta_satisfaccion (id_encuesta, id_usuario, id_pedido, puntuacion, comentarios, fecha_encuesta) VALUES (?, ?, ?, ?, ?, ?)',
+            [id_encuesta, id_usuario, id_pedido, puntuacion, comentarios, fecha_encuesta]
         );
-        res.status(201).json({ id: result.insertId, puntuacion, comentarios, fecha_encuesta });
+        res.status(201).json({ id: result.insertId, id_encuesta, id_usuario, id_pedido, puntuacion, comentarios, fecha_encuesta });
     } catch (error) {
         res.status(500).json({ error: 'Error al crear la encuesta de satisfaccion' });
     }
@@ -49,12 +49,12 @@ router.post('/', async (req, res) => {
 
 //Actualizar una encuesta de satisfaccion existente
 router.put('/:id', async (req, res) => {
-    const { puntuacion, comentarios, fecha_encuesta } = req.body;
+    const {id_usuario, puntuacion, comentarios, fecha_encuesta } = req.body;
 
     try {
         const [result] = await pool.query(
-            'UPDATE encuesta_satisfaccion SET puntuacion = ?, comentarios = ?, fecha_encuesta = ? WHERE id_encuesta = ?',
-            [puntuacion, comentarios, fecha_encuesta, req.params.id]
+            'UPDATE encuesta_satisfaccion SET id_usuario = ?, puntuacion = ?, comentarios = ?, fecha_encuesta = ? WHERE id_encuesta = ?',
+            [id_usuario, puntuacion, comentarios, fecha_encuesta, req.params.id]
         );
 
         if (result.affectedRows === 0) return res.status(404).json({ error: 'Encuesta no encontrada '});

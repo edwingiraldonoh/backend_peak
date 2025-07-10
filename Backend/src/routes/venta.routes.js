@@ -28,16 +28,16 @@ router.get('/:id', async (req, res) => {
 
 //Crear una nueva venta
 router.post('/', async (req, res) => {
-    const {fecha_venta, total_venta, comision, mesero_encargado} = req.body;
+    const {id_venta, id_usuario, fecha_venta, total_venta, comision, mesero_encargado} = req.body;
 
-    if (!fecha_venta || !total_venta || !comision || !mesero_encargado) {
+    if (!id_venta || !id_usuario || !fecha_venta || !total_venta || !comision || !mesero_encargado) {
         return res.status(400).json({error: 'Datos requeridos'});
     }
 
     try {
         const [result] = await pool.query(
-            'INSERT INTO venta (fecha_venta, total_venta, comision, mesero_encargado) VALUES (?, ?, ?, ?)',
-            [fecha_venta, total_venta, comision, mesero_encargado]
+            'INSERT INTO venta (id_venta, id_usuario, fecha_venta, total_venta, comision, mesero_encargado) VALUES (?, ?, ?, ?, ?, ?)',
+            [id_venta, id_usuario, fecha_venta, total_venta, comision, mesero_encargado]
         );
         res.status(201).json({ id: result.insertId, fecha_venta, total_venta, comision, mesero_encargado});
     } catch (error) {
@@ -47,12 +47,12 @@ router.post('/', async (req, res) => {
 
 //Actualizar una venta existente
 router.put('/:id', async (req, res) => {
-    const { fecha_venta, total_venta, comision, mesero_encargado, } = req.body;
+    const { id_usuario, fecha_venta, total_venta, comision, mesero_encargado, } = req.body;
 
     try {
         const [result] = await pool.query(
-            'UPDATE venta SET fecha_venta = ?, total_venta = ?, comision = ?, mesero_encargado = ? WHERE id_venta = ?',
-            [fecha_venta, total_venta, comision, mesero_encargado, req.params.id]
+            'UPDATE venta SET id_usuario = ?, fecha_venta = ?, total_venta = ?, comision = ?, mesero_encargado = ? WHERE id_venta = ?',
+            [id_usuario, fecha_venta, total_venta, comision, mesero_encargado, req.params.id]
         );
 
         if (result.affectedRows === 0) return res.status(404).json({ error: 'venta no encontrada '});

@@ -28,18 +28,18 @@ router.get('/:id', async (req, res) => {
 
 //Crear una nuevo inventario
 router.post('/', async (req, res) => {
-    const {cantidad_disponible, unidad_medida, fecha_actualizacion, alerta_stock} = req.body;
+    const {id_inventario, id_producto, cantidad_disponible, unidad_medida, fecha_actualizacion, alerta_stock} = req.body;
 
-    if (!cantidad_disponible || !unidad_medida || !fecha_actualizacion || !alerta_stock) {
+    if (!id_inventario || !id_producto || !cantidad_disponible || !unidad_medida || !fecha_actualizacion || !alerta_stock) {
         return res.status(400).json({error: 'Datos requeridos obligaroriamente'});
     }
 
     try {
         const [result] = await pool.query(
-            'INSERT INTO venta (cantidad_disponible, unidad_medida, fecha_actualizacion, alerta_stock) VALUES (?, ?, ?)',
-            [cantidad_disponible, unidad_medida, fecha_actualizacion, alerta_stock]
+            'INSERT INTO venta (id_inventario, id_producto, cantidad_disponible, unidad_medida, fecha_actualizacion, alerta_stock) VALUES (?, ?, ?, ?, ?)',
+            [id_inventario, id_producto, cantidad_disponible, unidad_medida, fecha_actualizacion, alerta_stock]
         );
-        res.status(201).json({ id: result.insertId, cantidad_disponible, unidad_medida, fecha_actualizacion, alerta_stock });
+        res.status(201).json({ id: result.insertId, id_inventario, id_producto, cantidad_disponible, unidad_medida, fecha_actualizacion, alerta_stock });
     } catch (error) {
         res.status(500).json({ error: 'Error al crear el inventario' });
     }
@@ -47,12 +47,12 @@ router.post('/', async (req, res) => {
 
 //Actualizar un inventario existente
 router.put('/:id', async (req, res) => {
-    const { cantidad_disponible, unidad_medida, fecha_actualizacion, alerta_stock } = req.body;
+    const {id_producto, cantidad_disponible, unidad_medida, fecha_actualizacion, alerta_stock } = req.body;
 
     try {
         const [result] = await pool.query(
-            'UPDATE inventario SET cantidad_disponible = ?, unidad_medida = ?, fecha_actualizacion = ?, alerta_stock = ? WHERE id_inventario = ?',
-            [cantidad_disponible, unidad_medida, fecha_actualizacion, alerta_stock, req.params.id]
+            'UPDATE inventario SET id_producto = ?, cantidad_disponible = ?, unidad_medida = ?, fecha_actualizacion = ?, alerta_stock = ? WHERE id_inventario = ?',
+            [id_producto, cantidad_disponible, unidad_medida, fecha_actualizacion, alerta_stock, req.params.id]
         );
 
         if (result.affectedRows === 0) return res.status(404).json({ error: 'Inventario no encontrado '});

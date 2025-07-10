@@ -28,18 +28,18 @@ router.get('/:id', async (req, res) => {
 
 //Crear un nuevo informe de inventario
 router.post('/', async (req, res) => {
-    const {fecha_informe, descripcion_informe} = req.body;
+    const {id_informe, id_inventario, fecha_informe, descripcion_informe} = req.body;
 
-    if (!fecha_informe || !descripcion_informe) {
+    if (!id_informe || !id_inventario || !fecha_informe || !descripcion_informe) {
         return res.status(400).json({error: 'La descripcion es necesaria'});
     }
 
     try {
         const [result] = await pool.query(
-            'INSERT INTO informe_inventario (fecha_informe, descripcion_informe) VALUES (?)',
+            'INSERT INTO informe_inventario (id_informe, id_inventario, fecha_informe, descripcion_informe) VALUES (?)',
             [descripcion_informe]
         );
-        res.status(201).json({ id: result.insertId, fecha_informe, descripcion_informe });
+        res.status(201).json({ id: result.insertId, id_informe, id_inventario, fecha_informe, descripcion_informe });
     } catch (error) {
         res.status(500).json({ error: 'Error al crear la descripcion del informe' });
     }
@@ -47,12 +47,12 @@ router.post('/', async (req, res) => {
 
 //Actualizar el informe de inventario existente
 router.put('/:id', async (req, res) => {
-    const { fecha_informe, descripcion_informe } = req.body;
+    const {id_inventario, fecha_informe, descripcion_informe } = req.body;
 
     try {
         const [result] = await pool.query(
-            'UPDATE informe_inventario SET fecha_informe = ?, descripcion_informe = ? WHERE id_informe = ?',
-            [fecha_informe, descripcion_informe, req.params.id]
+            'UPDATE informe_inventario SET id_inventario = ?, fecha_informe = ?, descripcion_informe = ? WHERE id_informe = ?',
+            [id_inventario, fecha_informe, descripcion_informe, req.params.id]
         );
 
         if (result.affectedRows === 0) return res.status(404).json({ error: 'Informe no encontrado '});

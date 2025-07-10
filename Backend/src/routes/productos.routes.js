@@ -28,18 +28,18 @@ router.get('/:id', async (req, res) => {
 
 //Crear un nuevo producto
 router.post('/', async (req, res) => {
-    const {nombre_producto, descripcion_producto, precio_producto, tiempo_preparacion, categoria} = req.body;
+    const {id_productos, nombre_producto, descripcion_producto, precio_producto, tiempo_preparacion, categoria} = req.body;
 
-    if (!nombre_producto || !descripcion_producto || !precio_producto || !tiempo_preparacion || !categoria) {
+    if (!id_productos || !nombre_producto || !descripcion_producto || !precio_producto || !tiempo_preparacion || !categoria) {
         return res.status(400).json({error: 'Nombre y precio son reuqeridos'});
     }
 
     try {
         const [result] = await pool.query(
-            'INSERT INTO productos (nombre_producto, descripcion_producto, precio_producto, tiempo_preparacion categoria) VALUES (?, ?, ?, ?)',
-            [nombre_producto, descripcion_producto, precio_producto, categoria]
+            'INSERT INTO productos (id_productos, nombre_producto, descripcion_producto, precio_producto, tiempo_preparacion categoria) VALUES (?, ?, ?, ?, ?)',
+            [id_productos, nombre_producto, descripcion_producto, precio_producto, categoria]
         );
-        res.status(201).json({ id: result.insertId, nombre_producto, descripcion_producto, precio_producto, tiempo_preparacion, categoria });
+        res.status(201).json({ id: result.insertId, id_productos, nombre_producto, descripcion_producto, precio_producto, tiempo_preparacion, categoria });
     } catch (error) {
         res.status(500).json({ error: 'Error al crear el producto' });
     }

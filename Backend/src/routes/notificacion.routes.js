@@ -28,18 +28,18 @@ router.get('/:id', async (req, res) => {
 
 //Crear una nueva notificacion
 router.post('/', async (req, res) => {
-    const {mensaje_notificacion, fecha_notificacion, estado_notificacion, destinatario} = req.body;
+    const {id_notificacion, id_usuario, id_pedido, mensaje_notificacion, fecha_notificacion, estado_notificacion, destinatario} = req.body;
 
-    if (!mensaje_notificacion || !fecha_notificacion || !estado_notificacion || !destinatario) {
+    if (!id_notificacion || !id_usuario || !id_pedido || !mensaje_notificacion || !fecha_notificacion || !estado_notificacion || !destinatario) {
         return res.status(400).json({error: 'Datos requeridos obligatoriamente'});
     }
 
     try {
         const [result] = await pool.query(
-            'INSERT INTO notificacion (mensaje_notificacion, fecha_notificacion, estado_notificacion, destinatario) VALUES (?, ?, ?)',
-            [mensaje_notificacion, fecha_notificacion, estado_notificacion, destinatario]
+            'INSERT INTO notificacion (id_notificacion, id_usuario, id_pedido, mensaje_notificacion, fecha_notificacion, estado_notificacion, destinatario) VALUES (?, ?, ?, ?, ?, ?)',
+            [id_notificacion, id_usuario, id_pedido, mensaje_notificacion, fecha_notificacion, estado_notificacion, destinatario]
         );
-        res.status(201).json({ id: result.insertId, mensaje_notificacion, fecha_notificacion, estado_notificacion, destinatario });
+        res.status(201).json({ id: result.insertId, id_notificacion, id_usuario, id_pedido, mensaje_notificacion, fecha_notificacion, estado_notificacion, destinatario });
     } catch (error) {
         res.status(500).json({ error: 'Error al crear la notificacion' });
     }
@@ -47,12 +47,12 @@ router.post('/', async (req, res) => {
 
 //Actualizar una notificacion existente
 router.put('/:id', async (req, res) => {
-    const { mensaje_notificacion, fecha_notificacion, estado_notificacion, destinatario } = req.body;
+    const {id_usuario, id_pedido,  mensaje_notificacion, fecha_notificacion, estado_notificacion, destinatario } = req.body;
 
     try {
         const [result] = await pool.query(
-            'UPDATE notificacion SET mensaje_notificacion = ?, fecha_notificacion = ?, estado_notificacion = ?, destinatario = ? WHERE id_notificacion = ?',
-            [mensaje_notificacion, fecha_notificacion, estado_notificacion, destinatario, req.params.id]
+            'UPDATE notificacion SET id_usuario = ?, id_pedido = ?, mensaje_notificacion = ?, fecha_notificacion = ?, estado_notificacion = ?, destinatario = ? WHERE id_notificacion = ?',
+            [id_usuario, id_pedido,mensaje_notificacion, fecha_notificacion, estado_notificacion, destinatario, req.params.id]
         );
 
         if (result.affectedRows === 0) return res.status(404).json({ error: 'Notificacion no encontrada '});
