@@ -23,14 +23,14 @@ app.get('/',(req, res) => {
     res.send('El servidor esta funcionando correctamente');
 });
 
-app.use('/api/satisfaction', encuestaRoutes);
-app.use('/api/facturas', facturacionRoutes); 
-app.use('api/informe_inventario', informeRoutes)
-app.use('api/inventario', inventarioRoutes)
-app.use('api/inventario', notificacionRoutes)
-app.use('api/pedidos', pedidosRoutes)
+app.use('/api/satisfaccion', encuestaRoutes);
+app.use('/api/facturacion', facturacionRoutes); 
+app.use('/api/informe_inventario', informeRoutes)
+app.use('/api/inventario', inventarioRoutes)
+app.use('/api/notificacion', notificacionRoutes)
+app.use('/api/pedidos', pedidosRoutes)
 app.use('/api/productos', productosRoutes)
-app.use('api/usuarios', usuariosRoutes)
+app.use('/api/usuarios', usuariosRoutes)
 app.use('/api/venta', ventaRoutes)
 
 

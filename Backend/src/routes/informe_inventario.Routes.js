@@ -36,8 +36,8 @@ router.post('/', async (req, res) => {
 
     try {
         const [result] = await pool.query(
-            'INSERT INTO informe_inventario (id_informe, id_inventario, fecha_informe, descripcion_informe) VALUES (?)',
-            [descripcion_informe]
+            'INSERT INTO informe_inventario (id_informe, id_inventario, fecha_informe, descripcion_informe) VALUES (?, ?, ?, ?)',
+            [id_informe, id_inventario, fecha_informe, descripcion_informe]
         );
         res.status(201).json({ id: result.insertId, id_informe, id_inventario, fecha_informe, descripcion_informe });
     } catch (error) {
@@ -56,7 +56,6 @@ router.put('/:id', async (req, res) => {
         );
 
         if (result.affectedRows === 0) return res.status(404).json({ error: 'Informe no encontrado '});
-
         res.json({ message: 'Informe de inventario actualizado correctamente'});
     } catch (error) {
         res.status(500).json({ error: 'Error al actualizar el informe de inventario' });

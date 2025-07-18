@@ -21,72 +21,72 @@ describe('notificacion.routes.js', () => {
         jest.clearAllMocks();
     });
 
-    // // Test para la ruta GET /notificaciones (obtener todas las notificaciones)
-    // describe('GET /notificaciones', () => {
-    //     test('Debería obtener todas las notificaciones', async () => {
-    //         // Datos de ejemplo que el mock de pool.query devolverá
-    //         const mockNotificaciones = [
-    //             { id_notificacion: 1, mensaje_notificacion: 'Mensaje 1', fecha_notificacion: '2024-01-01', estado_notificacion: 'enviado', destinatario: 'usuario1' },
-    //             { id_notificacion: 2, mensaje_notificacion: 'Mensaje 2', fecha_notificacion: '2024-01-02', estado_notificacion: 'pendiente', destinatario: 'usuario2' },
-    //         ];
-    //         // Configura el mock para que devuelva los datos esperados
-    //         pool.query.mockResolvedValueOnce([mockNotificaciones]);
+    // Test para la ruta GET /notificaciones (obtener todas las notificaciones)
+    describe('GET /notificaciones', () => {
+        test('Debería obtener todas las notificaciones', async () => {
+            // Datos de ejemplo que el mock de pool.query devolverá
+            const mockNotificaciones = [
+                { id_notificacion: 1, mensaje_notificacion: 'Mensaje 1', fecha_notificacion: '2024-01-01', estado_notificacion: 'enviado', destinatario: 'usuario1' },
+                { id_notificacion: 2, mensaje_notificacion: 'Mensaje 2', fecha_notificacion: '2024-01-02', estado_notificacion: 'pendiente', destinatario: 'usuario2' },
+            ];
+            // Configura el mock para que devuelva los datos esperados
+            pool.query.mockResolvedValueOnce([mockNotificaciones]);
 
-    //         // Realiza la petición GET
-    //         const res = await request(app).get('/notificaciones');
+            // Realiza la petición GET
+            const res = await request(app).get('/notificaciones');
 
-    //         // Afirmaciones
-    //         expect(res.statusCode).toEqual(200); // Espera un status 200 OK
-    //         expect(res.body).toEqual(mockNotificaciones); // Espera que el cuerpo de la respuesta sea igual a los datos mockeados
-    //         expect(pool.query).toHaveBeenCalledTimes(1); // Espera que pool.query haya sido llamado una vez
-    //         expect(pool.query).toHaveBeenCalledWith('SELECT * FROM notificacion'); // Espera que la consulta sea la correcta
-    //     });
+            // Afirmaciones
+            expect(res.statusCode).toEqual(200); // Espera un status 200 OK
+            expect(res.body).toEqual(mockNotificaciones); // Espera que el cuerpo de la respuesta sea igual a los datos mockeados
+            expect(pool.query).toHaveBeenCalledTimes(1); // Espera que pool.query haya sido llamado una vez
+            expect(pool.query).toHaveBeenCalledWith('SELECT * FROM notificacion'); // Espera que la consulta sea la correcta
+        });
 
-    //     test('Debería manejar errores al obtener todas las notificaciones', async () => {
-    //         // Configura el mock para que rechace la promesa con un error
-    //         pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
+        test('Debería manejar errores al obtener todas las notificaciones', async () => {
+            // Configura el mock para que rechace la promesa con un error
+            pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
 
-    //         // Realiza la petición GET
-    //         const res = await request(app).get('/notificaciones');
+            // Realiza la petición GET
+            const res = await request(app).get('/notificaciones');
 
-    //         // Afirmaciones
-    //         expect(res.statusCode).toEqual(500); // Espera un status 500 Internal Server Error
-    //         expect(res.body).toEqual({ error: 'al obtener los datos de la notificacion' }); // Espera el mensaje de error específico
-    //     });
-    // });
+            // Afirmaciones
+            expect(res.statusCode).toEqual(500); // Espera un status 500 Internal Server Error
+            expect(res.body).toEqual({ error: 'al obtener los datos de la notificacion' }); // Espera el mensaje de error específico
+        });
+    });
 
-    // // Test para la ruta GET /notificaciones/:id (obtener notificación por ID)
-    // describe('GET /notificaciones/:id', () => {
-    //     test('Debería obtener una notificación por ID', async () => {
-    //         const mockNotificacion = { id_notificacion: 1, mensaje_notificacion: 'Mensaje 1', fecha_notificacion: '2024-01-01', estado_notificacion: 'enviado', destinatario: 'usuario1' };
-    //         pool.query.mockResolvedValueOnce([[mockNotificacion]]); // Nota el doble array para simular rows[0]
+    // Test para la ruta GET /notificaciones/:id (obtener notificación por ID)
+    describe('GET /notificaciones/:id', () => {
+        test('Debería obtener una notificación por ID', async () => {
+            const mockNotificacion = { id_notificacion: 1, mensaje_notificacion: 'Mensaje 1', fecha_notificacion: '2024-01-01', estado_notificacion: 'enviado', destinatario: 'usuario1' };
+            pool.query.mockResolvedValueOnce([[mockNotificacion]]); // Nota el doble array para simular rows[0]
 
-    //         const res = await request(app).get('/notificaciones/1');
+            const res = await request(app).get('/notificaciones/1');
 
-    //         expect(res.statusCode).toEqual(200);
-    //         expect(res.body).toEqual(mockNotificacion);
-    //         expect(pool.query).toHaveBeenCalledTimes(1);
-    //         expect(pool.query).toHaveBeenCalledWith('SELECT * FROM notificacion WHERE id_notificacion = ?', ['1']);
-    //     });
+            expect(res.statusCode).toEqual(200);
+            expect(res.body).toEqual(mockNotificacion);
+            expect(pool.query).toHaveBeenCalledTimes(1);
+            expect(pool.query).toHaveBeenCalledWith('SELECT * FROM notificacion WHERE id_notificacion = ?', ['1']);
+        });
 
-    //     test('Debería devolver 404 si la notificación no se encuentra', async () => {
-    //         pool.query.mockResolvedValueOnce([[]]); // Simula que no se encontraron filas
+        test('Debería devolver 404 si la notificación no se encuentra', async () => {
+            pool.query.mockResolvedValueOnce([[]]); // Simula que no se encontraron filas
 
-    //         const res = await request(app).get('/notificaciones/999');
+            const res = await request(app).get('/notificaciones/999');
 
-    //         expect(res.statusCode).toEqual(404);
-    //         expect(res.body).toEqual({ error: 'notificacion no encontrada' });
-    //     });
+            expect(res.statusCode).toEqual(404);
+            expect(res.body).toEqual({ error: 'notificacion no encontrada' });
+        });
 
-    //     test('Debería manejar errores al obtener la notificación por ID', async () => {
-    //         pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
+        test('Debería manejar errores al obtener la notificación por ID', async () => {
+            pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
 
-    //         const res = await request(app).get('/notificaciones/1');
+            const res = await request(app).get('/notificaciones/1');
 
-    //         expect(res.statusCode).toEqual(500);
-    //         expect(res.body).toEqual({ error: 'Error al obtener la notificacion' });
-    //     });
-    // });
+            expect(res.statusCode).toEqual(500);
+            expect(res.body).toEqual({ error: 'Error al obtener la notificacion' });
+        });
+    });
 
     // // Test para la ruta POST /notificaciones (crear una nueva notificación)
     // describe('POST /notificaciones', () => {
@@ -176,35 +176,35 @@ describe('notificacion.routes.js', () => {
     //     });
     // });
 
-    // // Test para la ruta DELETE /notificaciones/:id (eliminar una notificación)
-    // describe('DELETE /notificaciones/:id', () => {
-    //     test('Debería eliminar una notificación existente', async () => {
-    //         pool.query.mockResolvedValueOnce([{ affectedRows: 1 }]); // Simula que una fila fue afectada (eliminada)
+    // Test para la ruta DELETE /notificaciones/:id (eliminar una notificación)
+    describe('DELETE /notificaciones/:id', () => {
+        test('Debería eliminar una notificación existente', async () => {
+            pool.query.mockResolvedValueOnce([{ affectedRows: 1 }]); // Simula que una fila fue afectada (eliminada)
 
-    //         const res = await request(app).delete('/notificaciones/1');
+            const res = await request(app).delete('/notificaciones/1');
 
-    //         expect(res.statusCode).toEqual(200);
-    //         expect(res.body).toEqual({ message: 'Notificacion eliminada corectamente' });
-    //         expect(pool.query).toHaveBeenCalledTimes(1);
-    //         expect(pool.query).toHaveBeenCalledWith('DELETE FROM notificacion WHERE id_notificacion = ?', ['1']);
-    //     });
+            expect(res.statusCode).toEqual(200);
+            expect(res.body).toEqual({ message: 'Notificacion eliminada corectamente' });
+            expect(pool.query).toHaveBeenCalledTimes(1);
+            expect(pool.query).toHaveBeenCalledWith('DELETE FROM notificacion WHERE id_notificacion = ?', ['1']);
+        });
 
-    //     test('Debería devolver 404 si la notificación a eliminar no se encuentra', async () => {
-    //         pool.query.mockResolvedValueOnce([{ affectedRows: 0 }]); // Simula que ninguna fila fue afectada
+        test('Debería devolver 404 si la notificación a eliminar no se encuentra', async () => {
+            pool.query.mockResolvedValueOnce([{ affectedRows: 0 }]); // Simula que ninguna fila fue afectada
 
-    //         const res = await request(app).delete('/notificaciones/999');
+            const res = await request(app).delete('/notificaciones/999');
 
-    //         expect(res.statusCode).toEqual(404);
-    //         expect(res.body).toEqual({ error: 'Notificacion no encontrada' });
-    //     });
+            expect(res.statusCode).toEqual(404);
+            expect(res.body).toEqual({ error: 'Notificacion no encontrada' });
+        });
 
-    //     test('Debería manejar errores al eliminar una notificación', async () => {
-    //         pool.query.mockRejectedValueOnce(new Error('Error de eliminación'));
+        test('Debería manejar errores al eliminar una notificación', async () => {
+            pool.query.mockRejectedValueOnce(new Error('Error de eliminación'));
 
-    //         const res = await request(app).delete('/notificaciones/1');
+            const res = await request(app).delete('/notificaciones/1');
 
-    //         expect(res.statusCode).toEqual(500);
-    //         expect(res.body).toEqual({ error: 'Error al eliminar la notificacion' });
-    //     });
-    // });
+            expect(res.statusCode).toEqual(500);
+            expect(res.body).toEqual({ error: 'Error al eliminar la notificacion' });
+        });
+    });
 });

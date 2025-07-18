@@ -21,72 +21,72 @@ describe('pedidos.routes.js', () => {
         jest.clearAllMocks();
     });
 
-    // // Test para la ruta GET /pedidos (obtener todos los pedidos)
-    // describe('GET /pedidos', () => {
-    //     test('Debería obtener todos los pedidos', async () => {
-    //         // Datos de ejemplo que el mock de pool.query devolverá
-    //         const mockPedidos = [
-    //             { id_pedido: 1, fecha_pedido: '2024-01-01', estado_pedido: 'pendiente', cantidad: 2, tiempo_entrega_estimado: '2 días', detalles_pedido: 'Artículo A', resumen_pedido: 'Resumen A', total_pagar: 25.00 },
-    //             { id_pedido: 2, fecha_pedido: '2024-01-02', estado_pedido: 'enviado', cantidad: 1, tiempo_entrega_estimado: '1 día', detalles_pedido: 'Artículo B', resumen_pedido: 'Resumen B', total_pagar: 15.50 },
-    //         ];
-    //         // Configura el mock para que devuelva los datos esperados
-    //         pool.query.mockResolvedValueOnce([mockPedidos]);
+    // Test para la ruta GET /pedidos (obtener todos los pedidos)
+    describe('GET /pedidos', () => {
+        test('Debería obtener todos los pedidos', async () => {
+            // Datos de ejemplo que el mock de pool.query devolverá
+            const mockPedidos = [
+                { id_pedido: 1, fecha_pedido: '2024-01-01', estado_pedido: 'pendiente', cantidad: 2, tiempo_entrega_estimado: '2 días', detalles_pedido: 'Artículo A', resumen_pedido: 'Resumen A', total_pagar: 25.00 },
+                { id_pedido: 2, fecha_pedido: '2024-01-02', estado_pedido: 'enviado', cantidad: 1, tiempo_entrega_estimado: '1 día', detalles_pedido: 'Artículo B', resumen_pedido: 'Resumen B', total_pagar: 15.50 },
+            ];
+            // Configura el mock para que devuelva los datos esperados
+            pool.query.mockResolvedValueOnce([mockPedidos]);
 
-    //         // Realiza la petición GET
-    //         const res = await request(app).get('/pedidos');
+            // Realiza la petición GET
+            const res = await request(app).get('/pedidos');
 
-    //         // Afirmaciones
-    //         expect(res.statusCode).toEqual(200); // Espera un status 200 OK
-    //         expect(res.body).toEqual(mockPedidos); // Espera que el cuerpo de la respuesta sea igual a los datos mockeados
-    //         expect(pool.query).toHaveBeenCalledTimes(1); // Espera que pool.query haya sido llamado una vez
-    //         expect(pool.query).toHaveBeenCalledWith('SELECT * FROM pedidos'); // Espera que la consulta sea la correcta
-    //     });
+            // Afirmaciones
+            expect(res.statusCode).toEqual(200); // Espera un status 200 OK
+            expect(res.body).toEqual(mockPedidos); // Espera que el cuerpo de la respuesta sea igual a los datos mockeados
+            expect(pool.query).toHaveBeenCalledTimes(1); // Espera que pool.query haya sido llamado una vez
+            expect(pool.query).toHaveBeenCalledWith('SELECT * FROM pedidos'); // Espera que la consulta sea la correcta
+        });
 
-    //     test('Debería manejar errores al obtener todos los pedidos', async () => {
-    //         // Configura el mock para que rechace la promesa con un error
-    //         pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
+        test('Debería manejar errores al obtener todos los pedidos', async () => {
+            // Configura el mock para que rechace la promesa con un error
+            pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
 
-    //         // Realiza la petición GET
-    //         const res = await request(app).get('/pedidos');
+            // Realiza la petición GET
+            const res = await request(app).get('/pedidos');
 
-    //         // Afirmaciones
-    //         expect(res.statusCode).toEqual(500); // Espera un status 500 Internal Server Error
-    //         expect(res.body).toEqual({ error: 'al obtener los datos de los pedidos' }); // Espera el mensaje de error específico
-    //     });
-    // });
+            // Afirmaciones
+            expect(res.statusCode).toEqual(500); // Espera un status 500 Internal Server Error
+            expect(res.body).toEqual({ error: 'al obtener los datos de los pedidos' }); // Espera el mensaje de error específico
+        });
+    });
 
-    // // Test para la ruta GET /pedidos/:id (obtener pedido por ID)
-    // describe('GET /pedidos/:id', () => {
-    //     test('Debería obtener un pedido por ID', async () => {
-    //         const mockPedido = { id_pedido: 1, fecha_pedido: '2024-01-01', estado_pedido: 'pendiente', cantidad: 2, tiempo_entrega_estimado: '2 días', detalles_pedido: 'Artículo A', resumen_pedido: 'Resumen A', total_pagar: 25.00 };
-    //         pool.query.mockResolvedValueOnce([[mockPedido]]);
+    // Test para la ruta GET /pedidos/:id (obtener pedido por ID)
+    describe('GET /pedidos/:id', () => {
+        test('Debería obtener un pedido por ID', async () => {
+            const mockPedido = { id_pedido: 1, fecha_pedido: '2024-01-01', estado_pedido: 'pendiente', cantidad: 2, tiempo_entrega_estimado: '2 días', detalles_pedido: 'Artículo A', resumen_pedido: 'Resumen A', total_pagar: 25.00 };
+            pool.query.mockResolvedValueOnce([[mockPedido]]);
 
-    //         const res = await request(app).get('/pedidos/1');
+            const res = await request(app).get('/pedidos/1');
 
-    //         expect(res.statusCode).toEqual(200);
-    //         expect(res.body).toEqual(mockPedido);
-    //         expect(pool.query).toHaveBeenCalledTimes(1);
-    //         expect(pool.query).toHaveBeenCalledWith('SELECT * FROM pedidos WHERE id_pedido = ?', ['1']);
-    //     });
+            expect(res.statusCode).toEqual(200);
+            expect(res.body).toEqual(mockPedido);
+            expect(pool.query).toHaveBeenCalledTimes(1);
+            expect(pool.query).toHaveBeenCalledWith('SELECT * FROM pedidos WHERE id_pedido = ?', ['1']);
+        });
 
-    //     test('Debería devolver 404 si el pedido no se encuentra', async () => {
-    //         pool.query.mockResolvedValueOnce([[]]); // Simula que no se encontraron filas
+        test('Debería devolver 404 si el pedido no se encuentra', async () => {
+            pool.query.mockResolvedValueOnce([[]]); // Simula que no se encontraron filas
 
-    //         const res = await request(app).get('/pedidos/999');
+            const res = await request(app).get('/pedidos/999');
 
-    //         expect(res.statusCode).toEqual(404);
-    //         expect(res.body).toEqual({ error: 'Pedido no encontrado' });
-    //     });
+            expect(res.statusCode).toEqual(404);
+            expect(res.body).toEqual({ error: 'Pedido no encontrado' });
+        });
 
-    //     test('Debería manejar errores al obtener el pedido por ID', async () => {
-    //         pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
+        test('Debería manejar errores al obtener el pedido por ID', async () => {
+            pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
 
-    //         const res = await request(app).get('/pedidos/1');
+            const res = await request(app).get('/pedidos/1');
 
-    //         expect(res.statusCode).toEqual(500);
-    //         expect(res.body).toEqual({ error: 'Error al obtener el pedido' });
-    //     });
-    // });
+            expect(res.statusCode).toEqual(500);
+            expect(res.body).toEqual({ error: 'Error al obtener el pedido' });
+        });
+    });
 
     // // Test para la ruta POST /pedidos (crear un nuevo pedido)
     // describe('POST /pedidos', () => {
@@ -176,35 +176,35 @@ describe('pedidos.routes.js', () => {
     //     });
     // });
 
-    // // Test para la ruta DELETE /pedidos/:id (eliminar un pedido)
-    // describe('DELETE /pedidos/:id', () => {
-    //     test('Debería eliminar un pedido existente', async () => {
-    //         pool.query.mockResolvedValueOnce([{ affectedRows: 1 }]); // Simula que una fila fue afectada (eliminada)
+    // Test para la ruta DELETE /pedidos/:id (eliminar un pedido)
+    describe('DELETE /pedidos/:id', () => {
+        test('Debería eliminar un pedido existente', async () => {
+            pool.query.mockResolvedValueOnce([{ affectedRows: 1 }]); // Simula que una fila fue afectada (eliminada)
 
-    //         const res = await request(app).delete('/pedidos/1');
+            const res = await request(app).delete('/pedidos/1');
 
-    //         expect(res.statusCode).toEqual(200);
-    //         expect(res.body).toEqual({ message: 'Pedido eliminado corectamente' });
-    //         expect(pool.query).toHaveBeenCalledTimes(1);
-    //         expect(pool.query).toHaveBeenCalledWith('DELETE FROM pedidos WHERE id_pedido = ?', ['1']);
-    //     });
+            expect(res.statusCode).toEqual(200);
+            expect(res.body).toEqual({ message: 'Pedido eliminado corectamente' });
+            expect(pool.query).toHaveBeenCalledTimes(1);
+            expect(pool.query).toHaveBeenCalledWith('DELETE FROM pedidos WHERE id_pedido = ?', ['1']);
+        });
 
-    //     test('Debería devolver 404 si el pedido a eliminar no se encuentra', async () => {
-    //         pool.query.mockResolvedValueOnce([{ affectedRows: 0 }]); // Simula que ninguna fila fue afectada
+        test('Debería devolver 404 si el pedido a eliminar no se encuentra', async () => {
+            pool.query.mockResolvedValueOnce([{ affectedRows: 0 }]); // Simula que ninguna fila fue afectada
 
-    //         const res = await request(app).delete('/pedidos/999');
+            const res = await request(app).delete('/pedidos/999');
 
-    //         expect(res.statusCode).toEqual(404);
-    //         expect(res.body).toEqual({ error: 'Pedido no encontrado' });
-    //     });
+            expect(res.statusCode).toEqual(404);
+            expect(res.body).toEqual({ error: 'Pedido no encontrado' });
+        });
 
-    //     test('Debería manejar errores al eliminar un pedido', async () => {
-    //         pool.query.mockRejectedValueOnce(new Error('Error de eliminación'));
+        test('Debería manejar errores al eliminar un pedido', async () => {
+            pool.query.mockRejectedValueOnce(new Error('Error de eliminación'));
 
-    //         const res = await request(app).delete('/pedidos/1');
+            const res = await request(app).delete('/pedidos/1');
 
-    //         expect(res.statusCode).toEqual(500);
-    //         expect(res.body).toEqual({ error: 'Error al eliminar un pedido' });
-    //     });
-    // });
+            expect(res.statusCode).toEqual(500);
+            expect(res.body).toEqual({ error: 'Error al eliminar un pedido' });
+        });
+    });
 });

@@ -36,7 +36,7 @@ router.post('/', async (req, res) => {
 
     try {
         const [result] = await pool.query(
-            'INSERT INTO venta (id_inventario, id_producto, cantidad_disponible, unidad_medida, fecha_actualizacion, alerta_stock) VALUES (?, ?, ?, ?, ?)',
+            'INSERT INTO inventario (id_inventario, id_producto, cantidad_disponible, unidad_medida, fecha_actualizacion, alerta_stock) VALUES (?, ?, ?, ?, ?, ?)',
             [id_inventario, id_producto, cantidad_disponible, unidad_medida, fecha_actualizacion, alerta_stock]
         );
         res.status(201).json({ id: result.insertId, id_inventario, id_producto, cantidad_disponible, unidad_medida, fecha_actualizacion, alerta_stock });

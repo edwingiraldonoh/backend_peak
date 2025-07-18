@@ -21,72 +21,72 @@ describe('productos.routes.js', () => {
         jest.clearAllMocks();
     });
 
-    // // Test para la ruta GET /productos (obtener todos los productos)
-    // describe('GET /productos', () => {
-    //     test('Debería obtener todos los productos', async () => {
-    //         // Datos de ejemplo que el mock de pool.query devolverá
-    //         const mockProductos = [
-    //             { id_producto: 1, nombre_producto: 'Producto A', descripcion_producto: 'Descripción A', precio_producto: 10.00, tiempo_preparacion: '10 min', categoria: 'Bebidas' },
-    //             { id_producto: 2, nombre_producto: 'Producto B', descripcion_producto: 'Descripción B', precio_producto: 20.50, tiempo_preparacion: '20 min', categoria: 'Comida' },
-    //         ];
-    //         // Configura el mock para que devuelva los datos esperados
-    //         pool.query.mockResolvedValueOnce([mockProductos]);
+    // Test para la ruta GET /productos (obtener todos los productos)
+    describe('GET /productos', () => {
+        test('Debería obtener todos los productos', async () => {
+            // Datos de ejemplo que el mock de pool.query devolverá
+            const mockProductos = [
+                { id_producto: 1, nombre_producto: 'Producto A', descripcion_producto: 'Descripción A', precio_producto: 10.00, tiempo_preparacion: '10 min', categoria: 'Bebidas' },
+                { id_producto: 2, nombre_producto: 'Producto B', descripcion_producto: 'Descripción B', precio_producto: 20.50, tiempo_preparacion: '20 min', categoria: 'Comida' },
+            ];
+            // Configura el mock para que devuelva los datos esperados
+            pool.query.mockResolvedValueOnce([mockProductos]);
 
-    //         // Realiza la petición GET
-    //         const res = await request(app).get('/productos');
+            // Realiza la petición GET
+            const res = await request(app).get('/productos');
 
-    //         // Afirmaciones
-    //         expect(res.statusCode).toEqual(200); // Espera un status 200 OK
-    //         expect(res.body).toEqual(mockProductos); // Espera que el cuerpo de la respuesta sea igual a los datos mockeados
-    //         expect(pool.query).toHaveBeenCalledTimes(1); // Espera que pool.query haya sido llamado una vez
-    //         expect(pool.query).toHaveBeenCalledWith('SELECT * FROM productos'); // Espera que la consulta sea la correcta
-    //     });
+            // Afirmaciones
+            expect(res.statusCode).toEqual(200); // Espera un status 200 OK
+            expect(res.body).toEqual(mockProductos); // Espera que el cuerpo de la respuesta sea igual a los datos mockeados
+            expect(pool.query).toHaveBeenCalledTimes(1); // Espera que pool.query haya sido llamado una vez
+            expect(pool.query).toHaveBeenCalledWith('SELECT * FROM productos'); // Espera que la consulta sea la correcta
+        });
 
-    //     test('Debería manejar errores al obtener todos los productos', async () => {
-    //         // Configura el mock para que rechace la promesa con un error
-    //         pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
+        test('Debería manejar errores al obtener todos los productos', async () => {
+            // Configura el mock para que rechace la promesa con un error
+            pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
 
-    //         // Realiza la petición GET
-    //         const res = await request(app).get('/productos');
+            // Realiza la petición GET
+            const res = await request(app).get('/productos');
 
-    //         // Afirmaciones
-    //         expect(res.statusCode).toEqual(500); // Espera un status 500 Internal Server Error
-    //         expect(res.body).toEqual({ error: 'al obtener los productos' }); // Espera el mensaje de error específico
-    //     });
-    // });
+            // Afirmaciones
+            expect(res.statusCode).toEqual(500); // Espera un status 500 Internal Server Error
+            expect(res.body).toEqual({ error: 'al obtener los productos' }); // Espera el mensaje de error específico
+        });
+    });
 
-    // // Test para la ruta GET /productos/:id (obtener producto por ID)
-    // describe('GET /productos/:id', () => {
-    //     test('Debería obtener un producto por ID', async () => {
-    //         const mockProducto = { id_producto: 1, nombre_producto: 'Producto A', descripcion_producto: 'Descripción A', precio_producto: 10.00, tiempo_preparacion: '10 min', categoria: 'Bebidas' };
-    //         pool.query.mockResolvedValueOnce([[mockProducto]]); // Nota el doble array para simular rows[0]
+    // Test para la ruta GET /productos/:id (obtener producto por ID)
+    describe('GET /productos/:id', () => {
+        test('Debería obtener un producto por ID', async () => {
+            const mockProducto = { id_producto: 1, nombre_producto: 'Producto A', descripcion_producto: 'Descripción A', precio_producto: 10.00, tiempo_preparacion: '10 min', categoria: 'Bebidas' };
+            pool.query.mockResolvedValueOnce([[mockProducto]]); // Nota el doble array para simular rows[0]
 
-    //         const res = await request(app).get('/productos/1');
+            const res = await request(app).get('/productos/1');
 
-    //         expect(res.statusCode).toEqual(200);
-    //         expect(res.body).toEqual(mockProducto);
-    //         expect(pool.query).toHaveBeenCalledTimes(1);
-    //         expect(pool.query).toHaveBeenCalledWith('SELECT * FROM productos WHERE id_producto = ?', ['1']);
-    //     });
+            expect(res.statusCode).toEqual(200);
+            expect(res.body).toEqual(mockProducto);
+            expect(pool.query).toHaveBeenCalledTimes(1);
+            expect(pool.query).toHaveBeenCalledWith('SELECT * FROM productos WHERE id_producto = ?', ['1']);
+        });
 
-    //     test('Debería devolver 404 si el producto no se encuentra', async () => {
-    //         pool.query.mockResolvedValueOnce([[]]); // Simula que no se encontraron filas
+        test('Debería devolver 404 si el producto no se encuentra', async () => {
+            pool.query.mockResolvedValueOnce([[]]); // Simula que no se encontraron filas
 
-    //         const res = await request(app).get('/productos/999');
+            const res = await request(app).get('/productos/999');
 
-    //         expect(res.statusCode).toEqual(404);
-    //         expect(res.body).toEqual({ error: 'producto no encontrado' });
-    //     });
+            expect(res.statusCode).toEqual(404);
+            expect(res.body).toEqual({ error: 'producto no encontrado' });
+        });
 
-    //     test('Debería manejar errores al obtener el producto por ID', async () => {
-    //         pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
+        test('Debería manejar errores al obtener el producto por ID', async () => {
+            pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
 
-    //         const res = await request(app).get('/productos/1');
+            const res = await request(app).get('/productos/1');
 
-    //         expect(res.statusCode).toEqual(500);
-    //         expect(res.body).toEqual({ error: 'Error al obtener el producto' });
-    //     });
-    // });
+            expect(res.statusCode).toEqual(500);
+            expect(res.body).toEqual({ error: 'Error al obtener el producto' });
+        });
+    });
 
     // // Test para la ruta POST /productos (crear un nuevo producto)
     // describe('POST /productos', () => {
@@ -176,35 +176,35 @@ describe('productos.routes.js', () => {
     //     });
     // });
 
-    // // Test para la ruta DELETE /productos/:id (eliminar un producto)
-    // describe('DELETE /productos/:id', () => {
-    //     test('Debería eliminar un producto existente', async () => {
-    //         pool.query.mockResolvedValueOnce([{ affectedRows: 1 }]); // Simula que una fila fue afectada (eliminada)
+    // Test para la ruta DELETE /productos/:id (eliminar un producto)
+    describe('DELETE /productos/:id', () => {
+        test('Debería eliminar un producto existente', async () => {
+            pool.query.mockResolvedValueOnce([{ affectedRows: 1 }]); // Simula que una fila fue afectada (eliminada)
 
-    //         const res = await request(app).delete('/productos/1');
+            const res = await request(app).delete('/productos/1');
 
-    //         expect(res.statusCode).toEqual(200);
-    //         expect(res.body).toEqual({ message: 'Producto eliminado corectamente' });
-    //         expect(pool.query).toHaveBeenCalledTimes(1);
-    //         expect(pool.query).toHaveBeenCalledWith('DELETE FROM productos WHERE id_producto = ?', ['1']);
-    //     });
+            expect(res.statusCode).toEqual(200);
+            expect(res.body).toEqual({ message: 'Producto eliminado corectamente' });
+            expect(pool.query).toHaveBeenCalledTimes(1);
+            expect(pool.query).toHaveBeenCalledWith('DELETE FROM productos WHERE id_producto = ?', ['1']);
+        });
 
-    //     test('Debería devolver 404 si el producto a eliminar no se encuentra', async () => {
-    //         pool.query.mockResolvedValueOnce([{ affectedRows: 0 }]); // Simula que ninguna fila fue afectada
+        test('Debería devolver 404 si el producto a eliminar no se encuentra', async () => {
+            pool.query.mockResolvedValueOnce([{ affectedRows: 0 }]); // Simula que ninguna fila fue afectada
 
-    //         const res = await request(app).delete('/productos/999');
+            const res = await request(app).delete('/productos/999');
 
-    //         expect(res.statusCode).toEqual(404);
-    //         expect(res.body).toEqual({ error: 'Producto no encontrado' });
-    //     });
+            expect(res.statusCode).toEqual(404);
+            expect(res.body).toEqual({ error: 'Producto no encontrado' });
+        });
 
-    //     test('Debería manejar errores al eliminar un producto', async () => {
-    //         pool.query.mockRejectedValueOnce(new Error('Error de eliminación'));
+        test('Debería manejar errores al eliminar un producto', async () => {
+            pool.query.mockRejectedValueOnce(new Error('Error de eliminación'));
 
-    //         const res = await request(app).delete('/productos/1');
+            const res = await request(app).delete('/productos/1');
 
-    //         expect(res.statusCode).toEqual(500);
-    //         expect(res.body).toEqual({ error: 'Error al eliminar el producto' });
-    //     });
-    // });
+            expect(res.statusCode).toEqual(500);
+            expect(res.body).toEqual({ error: 'Error al eliminar el producto' });
+        });
+    });
 });

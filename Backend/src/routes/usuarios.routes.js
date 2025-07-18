@@ -41,10 +41,10 @@ router.post('/', async (req, res) => {
     const passHash = await hash(contraseña);
     try {
         const [result] = await pool.query(
-            'INSERT INTO usuarios (id_usuario, nombre_usuario, apellido_usuario, estado, contraseña, correo_electronico, telefono, fecha_creacion, fecha_modificacion) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-            [id_usuario, nombre_usuario, apellido_usuario, passHash, correo_electronico, telefono, fecha_creacion, fecha_modificacion]
+            'INSERT INTO usuarios (id_usuario, nombre_usuario, apellido_usuario, estado, contraseña, correo_electronico, telefono, fecha_creacion, fecha_modificacion) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [id_usuario, nombre_usuario, apellido_usuario, estado, passHash, correo_electronico, telefono, fecha_creacion, fecha_modificacion]
         );
-        res.status(201).json({ id: result.insertId, id_usuario, nombre_usuario, apellido_usuario, passHash, correo_electronico, telefono, fecha_creacion, fecha_modificacion });
+        res.status(201).json({ id: result.insertId, id_usuario, nombre_usuario, apellido_usuario, estado, passHash, correo_electronico, telefono, fecha_creacion, fecha_modificacion });
     } catch (error) {
         res.status(500).json({ error: 'Error al crear el usuario' });
     }
@@ -52,12 +52,14 @@ router.post('/', async (req, res) => {
 
 //Actualizar un usuario existente
 router.put('/:id', async (req, res) => {
-    const { nombre_usuario, apellido_usuario ,contraseña, correo_electronico, telefono, fecha_creacion, fecha_modificacion } = req.body;
+    const { nombre_usuario, apellido_usuario, contraseña, correo_electronico, telefono, fecha_creacion, fecha_modificacion } = req.body;
 
+    //Enciptacion de Contraseña
+    const passHash = await hash(contraseña);
     try {
         const [result] = await pool.query(
-            'UPDATE usuarios SET nombre_usuario = ?, apellido_usuario = ?, contraseña = ?, correo_electonico = ?, telefono = ?, fecha_creacion = ?, fecha_modificacion = ? WHERE id_usuario = ?',
-            [nombre_usuario, apellido_usuario ,contraseña, correo_electronico, telefono, fecha_creacion, fecha_modificacion, req.params.id]
+            'UPDATE usuarios SET nombre_usuario = ?, apellido_usuario = ?, contraseña = ?, correo_electronico = ?, telefono = ?, fecha_creacion = ?, fecha_modificacion = ? WHERE id_usuario = ?',
+            [nombre_usuario, apellido_usuario, passHash, correo_electronico, telefono, fecha_creacion, fecha_modificacion, req.params.id]
         );
 
         if (result.affectedRows === 0) return res.status(404).json({ error: 'Usuario no encontrado '});

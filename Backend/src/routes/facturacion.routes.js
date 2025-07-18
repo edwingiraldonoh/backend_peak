@@ -28,18 +28,18 @@ router.get('/:id', async (req, res) => {
 
 //Crear una nueva facturacion
 router.post('/', async (req, res) => {
-    const {id_factura, id_venta, fecha_factura, metodo_pago, descuentos, impuesto, tipo_facturacion} = req.body;
+    const {id_factura, id_venta, fecha_factura, metodo_pago, descuentos, impuestos, tipos_factura} = req.body;
 
-    if (!id_factura || !id_venta || !fecha_factura || !metodo_pago || !descuentos || !impuesto|| !tipo_facturacion) {
+    if (!id_factura || !id_venta || !fecha_factura || !metodo_pago || !descuentos || !impuestos || !tipos_factura) {
         return res.status(400).json({error: 'Metodo de pago y tipo de facturacion son requeridos'});
     }
 
     try {
         const [result] = await pool.query(
-            'INSERT INTO factura (id_factura, id_venta, fecha_factura, metodo_pago, descuentos, impuesto, tipo_facturacion) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            [id_factura, id_venta, fecha_factura, metodo_pago, descuentos, impuesto, tipo_facturacion]
+            'INSERT INTO facturacion (id_factura, id_venta, fecha_factura, metodo_pago, descuentos, impuestos, tipos_factura) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [id_factura, id_venta, fecha_factura, metodo_pago, descuentos, impuestos, tipos_factura]
         );
-        res.status(201).json({ id: result.insertId, id_factura, id_venta, fecha_factura, metodo_pago, descuentos, impuesto, tipo_facturacion});
+        res.status(201).json({ id: result.insertId, id_factura, id_venta, fecha_factura, metodo_pago, descuentos, impuestos, tipos_factura});
     } catch (error) {
         res.status(500).json({ error: 'Error al crear la factura' });
     }
@@ -47,12 +47,12 @@ router.post('/', async (req, res) => {
 
 //Actualizar una factura existente
 router.put('/:id', async (req, res) => {
-    const {id_venta, fecha_factura, metodo_pago, descuentos, impuesto, tipo_facturacion} = req.body;
+    const {id_venta, fecha_factura, metodo_pago, descuentos, impuestos, tipos_factura} = req.body;
 
     try {
         const [result] = await pool.query(
-            'UPDATE facturacion SET id_venta = ?, fecha_facturacion = ?, metodo_pago = ?, descuentos = ?, impuesto = ?, tipo_facturacion = ? WHERE id_factura = ?',
-            [id_venta, fecha_factura, metodo_pago, descuentos, impuesto, tipo_facturacion, req.params.id]
+            'UPDATE facturacion SET id_venta = ?, fecha_factura = ?, metodo_pago = ?, descuentos = ?, impuestos = ?, tipos_factura = ? WHERE id_factura = ?',
+            [id_venta, fecha_factura, metodo_pago, descuentos, impuestos, tipos_factura, req.params.id]
         );
 
         if (result.affectedRows === 0) return res.status(404).json({ error: 'Factura no encontrada '});

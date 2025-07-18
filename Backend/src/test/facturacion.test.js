@@ -25,159 +25,181 @@ describe('Rutas de Facturación', () => {
     pool.query.mockClear();
   });
 
-  // // Test para GET /api/facturas (obtener todas las facturas)
-  // describe('GET /api/facturas', () => {
-  //   it('debería devolver todas las facturas', async () => {
-  //     const mockFacturas = [
-  //       { id_factura: 1, fecha_factura: '2023-01-01', metodo_pago: 'Tarjeta', descuentos: 10, impuesto: 5, tipo_facturacion: 'Venta' },
-  //       { id_factura: 2, fecha_factura: '2023-01-02', metodo_pago: 'Efectivo', descuentos: 0, impuesto: 5, tipo_facturacion: 'Servicio' },
-  //     ];
-  //     // Configura el mock para que devuelva un resultado exitoso
-  //     pool.query.mockResolvedValueOnce([mockFacturas]);
+  // Test para GET /api/facturas (obtener todas las facturas)
+  describe('GET /api/facturacion', () => {
+    it('debería devolver todas las facturas', async () => {
+      const mockFacturas = [
+        { id_factura: 1, fecha_factura: '2023-01-01', metodo_pago: 'Tarjeta', descuentos: 10, impuesto: 5, tipo_facturacion: 'Venta' },
+        { id_factura: 2, fecha_factura: '2023-01-02', metodo_pago: 'Efectivo', descuentos: 0, impuesto: 5, tipo_facturacion: 'Servicio' },
+      ];
+      // Configura el mock para que devuelva un resultado exitoso
+      pool.query.mockResolvedValueOnce([mockFacturas]);
 
-  //     const res = await request(app).get('/api/facturas');
+      const res = await request(app).get('/api/facturas');
 
-  //     expect(res.statusCode).toEqual(200);
-  //     expect(res.body).toEqual(mockFacturas);
-  //     expect(pool.query).toHaveBeenCalledWith('SELECT * FROM facturacion');
-  //   });
+      expect(res.statusCode).toEqual(200);
+      expect(res.body).toEqual(mockFacturas);
+      expect(pool.query).toHaveBeenCalledWith('SELECT * FROM facturacion');
+    });
 
-  //   it('debería manejar errores al obtener todas las facturas', async () => {
-  //     // Configura el mock para que lance un error
-  //     pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
+    it('debería manejar errores al obtener todas las facturas', async () => {
+      // Configura el mock para que lance un error
+      pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
 
-  //     const res = await request(app).get('/api/facturas');
+      const res = await request(app).get('/api/facturas');
 
-  //     expect(res.statusCode).toEqual(500);
-  //     expect(res.body).toEqual({ error: 'al obtener la factura' });
-  //     expect(pool.query).toHaveBeenCalledWith('SELECT * FROM facturacion');
-  //   });
-  // });
+      expect(res.statusCode).toEqual(500);
+      expect(res.body).toEqual({ error: 'al obtener la factura' });
+      expect(pool.query).toHaveBeenCalledWith('SELECT * FROM facturacion');
+    });
+  });
 
-  // // Test para GET /api/facturas/:id (obtener factura por ID)
-  // describe('GET /api/facturas/:id', () => {
-  //   it('debería devolver una factura por ID', async () => {
-  //     const mockFactura = { id_factura: 1, fecha_factura: '2023-01-01', metodo_pago: 'Tarjeta', descuentos: 10, impuesto: 5, tipo_facturacion: 'Venta' };
-  //     pool.query.mockResolvedValueOnce([[mockFactura]]); // Array anidado porque pool.query devuelve [rows, fields]
+  // Test para GET /api/facturas/:id (obtener factura por ID)
+  describe('GET /api/facturacion/:id', () => {
+    it('debería devolver una factura por ID', async () => {
+      const mockFactura = { id_factura: 1, fecha_factura: '2023-01-01', metodo_pago: 'Tarjeta', descuentos: 10, impuesto: 5, tipo_facturacion: 'Venta' };
+      pool.query.mockResolvedValueOnce([[mockFactura]]); // Array anidado porque pool.query devuelve [rows, fields]
 
-  //     const res = await request(app).get('/api/facturas/1');
+      const res = await request(app).get('/api/facturas/1');
 
-  //     expect(res.statusCode).toEqual(200);
-  //     expect(res.body).toEqual(mockFactura);
-  //     expect(pool.query).toHaveBeenCalledWith('SELECT * FROM facturacion WHERE id_factura= ?', ['1']);
-  //   });
+      expect(res.statusCode).toEqual(200);
+      expect(res.body).toEqual(mockFactura);
+      expect(pool.query).toHaveBeenCalledWith('SELECT * FROM facturacion WHERE id_factura= ?', ['1']);
+    });
 
-  //   it('debería devolver 404 si la factura no se encuentra', async () => {
-  //     pool.query.mockResolvedValueOnce([[]]); // No se encontraron filas
+    it('debería devolver 404 si la factura no se encuentra', async () => {
+      pool.query.mockResolvedValueOnce([[]]); // No se encontraron filas
 
-  //     const res = await request(app).get('/api/facturas/999');
+      const res = await request(app).get('/api/facturas/999');
 
-  //     expect(res.statusCode).toEqual(404);
-  //     expect(res.body).toEqual({ error: 'Factura no encontrada' });
-  //     expect(pool.query).toHaveBeenCalledWith('SELECT * FROM facturacion WHERE id_factura= ?', ['999']);
-  //   });
+      expect(res.statusCode).toEqual(404);
+      expect(res.body).toEqual({ error: 'Factura no encontrada' });
+      expect(pool.query).toHaveBeenCalledWith('SELECT * FROM facturacion WHERE id_factura= ?', ['999']);
+    });
 
-  //   it('debería manejar errores al obtener una factura por ID', async () => {
-  //     pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
+    it('debería manejar errores al obtener una factura por ID', async () => {
+      pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
 
-  //     const res = await request(app).get('/api/facturas/1');
+      const res = await request(app).get('/api/facturas/1');
 
-  //     expect(res.statusCode).toEqual(500);
-  //     expect(res.body).toEqual({ error: 'Error al obtener la facturacion' });
-  //     expect(pool.query).toHaveBeenCalledWith('SELECT * FROM facturacion WHERE id_factura= ?', ['1']);
-  //   });
-  // });
+      expect(res.statusCode).toEqual(500);
+      expect(res.body).toEqual({ error: 'Error al obtener la facturacion' });
+      expect(pool.query).toHaveBeenCalledWith('SELECT * FROM facturacion WHERE id_factura= ?', ['1']);
+    });
+  });
 
-  // // Test para POST /api/facturas (crear nueva factura)
-  // describe('POST /api/facturas', () => {
-  //   it('debería crear una nueva factura', async () => {
-  //     const newFactura = { fecha_factura: '2023-07-01', metodo_pago: 'Transferencia', descuentos: 15, impuesto: 10, tipo_facturacion: 'Servicio' };
-  //     // Simula el resultado de una inserción exitosa
-  //     pool.query.mockResolvedValueOnce([{ insertId: 3 }]);
+  // Test para POST /api/facturas (crear nueva factura)
+    describe('POST /api/facturacion', () => {
+        const newFactura = {
+            id_factura: 3,
+            id_venta: 2,
+            fecha_factura: '2023-01-01',
+            metodo_pago: 'Efectivo',
+            descuentos: 0,
+            impuestos: 19, // Cambiado de 'impuesto' a 'impuestos'
+            tipos_factura: 'Venta' // Cambiado de 'tipo_facturacion' a 'tipos_factura'
+        };
 
-  //     const res = await request(app)
-  //       .post('/api/facturas')
-  //       .send(newFactura);
+        test('debería crear una nueva factura y retornar 201', async () => {
+            pool.query.mockResolvedValueOnce([{ insertId: 3 }]);
 
-  //     expect(res.statusCode).toEqual(201);
-  //     expect(res.body).toEqual({ id: 3, ...newFactura });
-  //     expect(pool.query).toHaveBeenCalledWith(
-  //       'INSERT INTO factura (fecha_factura, metodo_pago, descuentos, impuesto, tipo_facturacion) VALUES (?, ?, ?, ?, ?)',
-  //       [newFactura.fecha_factura, newFactura.metodo_pago, newFactura.descuentos, newFactura.impuesto, newFactura.tipo_facturacion]
-  //     );
-  //   });
+            const res = await request(app)
+                .post('/api/facturas')
+                .send(newFactura);
 
-  //   it('debería devolver 400 si faltan campos requeridos', async () => {
-  //     const invalidFactura = { fecha_factura: '2023-07-01', metodo_pago: 'Transferencia' };
+            // Verifica que la respuesta tenga un estado 201 (Created)
+            expect(res.statusCode).toEqual(201);
+            // Verifica que el cuerpo de la respuesta contenga los datos de la factura creada
+            expect(res.body).toEqual({ id: 3, ...newFactura });
+            // Verifica que pool.query haya sido llamado con los datos de inserción correctos
+            expect(pool.query).toHaveBeenCalledWith(
+                'INSERT INTO factura (id_factura, id_venta, fecha_factura, metodo_pago, descuentos, impuestos, tipos_factura) VALUES (?, ?, ?, ?, ?, ?, ?)', // Columnas actualizadas
+                [
+                    newFactura.id_factura,
+                    newFactura.id_venta,
+                    newFactura.fecha_factura,
+                    newFactura.metodo_pago,
+                    newFactura.descuentos,
+                    newFactura.impuestos, // Usando newFactura.impuestos
+                    newFactura.tipos_factura // Usando newFactura.tipos_factura
+                ]
+            );
+        });
 
-  //     const res = await request(app)
-  //       .post('/api/facturas')
-  //       .send(invalidFactura);
+        test('debería retornar 400 si faltan campos requeridos', async () => {
+            const invalidFactura = {
+                id_factura: 3, // Añadido para que solo falten los campos del error
+                id_venta: 2,
+                fecha_factura: '2023-01-01',
+                descuentos: 0,
+                impuestos: 19
+                // Faltan metodo_pago y tipos_factura
+            };
 
-  //     expect(res.statusCode).toEqual(400);
-  //     expect(res.body).toEqual({ error: 'Metodo de pago y tipo de facturacion son requeridos' });
-  //     expect(pool.query).not.toHaveBeenCalled(); // No debería llamar a la base de datos
-  //   });
+            const res = await request(app)
+                .post('/api/facturas')
+                .send(invalidFactura);
 
-  //   it('debería manejar errores al crear una factura', async () => {
-  //     const newFactura = { fecha_factura: '2023-07-01', metodo_pago: 'Transferencia', descuentos: 15, impuesto: 10, tipo_facturacion: 'Servicio' };
-  //     pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
+            // Verifica que la respuesta tenga un estado 400 (Bad Request)
+            expect(res.statusCode).toEqual(400);
+            // Verifica el mensaje de error específico
+            expect(res.body).toEqual({ error: 'Metodo de pago y tipo de facturacion son requeridos' });
+        });
 
-  //     const res = await request(app)
-  //       .post('/api/facturas')
-  //       .send(newFactura);
+        test('debería manejar errores del servidor', async () => {
+            // Configura el mock para que pool.query lance un error
+            pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
 
-  //     expect(res.statusCode).toEqual(500);
-  //     expect(res.body).toEqual({ error: 'Error al crear la factura' });
-  //     expect(pool.query).toHaveBeenCalled();
-  //   });
-  // });
+            const res = await request(app)
+                .post('/api/facturas')
+                .send(newFactura);
+
+            // Verifica que la respuesta tenga un estado 500 (Internal Server Error)
+            expect(res.statusCode).toEqual(500);
+            // Verifica el mensaje de error específico
+            expect(res.body).toEqual({ error: 'Error al crear la factura' });
+        });
+    });
 
   // // Test para PUT /api/facturas/:id (actualizar factura)
-  // describe('PUT /api/facturas/:id', () => {
-  //   it('debería actualizar una factura existente', async () => {
-  //     const updatedFactura = { fecha_factura: '2023-07-02', metodo_pago: 'Crédito', descuentos: 20, impuesto: 12, tipo_facturacion: 'Venta' };
-  //     // Simula el resultado de una actualización exitosa (affectedRows > 0)
-  //     pool.query.mockResolvedValueOnce([{ affectedRows: 1 }]); 
+  // describe('PUT /facturas/:id', () => {
+  //       const updatedFactura = {
+  //           id_venta: 1,
+  //           fecha_factura: '2023-01-01',
+  //           metodo_pago: 'Tarjeta de Crédito',
+  //           descuentos: 7,
+  //           impuesto: 11,
+  //           tipo_facturacion: 'Venta de Productos',
+  //       };
 
-  //     const res = await request(app)
-  //       .put('/api/facturas/1')
-  //       .send(updatedFactura);
+  //       test('debería actualizar una factura existente', async () => {
+  //           pool.query.mockResolvedValueOnce([{ affectedRows: 1 }]);
 
-  //     expect(res.statusCode).toEqual(200);
-  //     expect(res.body).toEqual({ message: 'Factura actualizada correctamente' });
-  //     expect(pool.query).toHaveBeenCalledWith(
-  //       'UPDATE facturacion SET fecha_facturacion = ?, metodo_pago = ?, descuentos = ?, impuesto = ?, tipo_facturacion = ? WHERE id_factura = ?',
-  //       [updatedFactura.fecha_factura, updatedFactura.metodo_pago, updatedFactura.descuentos, updatedFactura.impuesto, updatedFactura.tipo_facturacion, '1']
-  //     );
+  //           const res = await request(app).put('/facturas/1').send(updatedFactura);
+  //           expect(res.statusCode).toEqual(200);
+  //           expect(res.body).toEqual({ message: 'Factura actualizada correctamente' });
+  //           expect(pool.query).toHaveBeenCalledWith(
+  //               'UPDATE facturacion SET id_venta = ?, fecha_facturacion = ?, metodo_pago = ?, descuentos = ?, impuesto = ?, tipo_facturacion = ? WHERE id_factura = ?',
+  //               [updatedFactura.id_venta, updatedFactura.fecha_factura, updatedFactura.metodo_pago, updatedFactura.descuentos, updatedFactura.impuesto, updatedFactura.tipo_facturacion, '1']
+  //           );
+  //       });
+
+  //       test('debería devolver 404 si la factura a actualizar no se encuentra', async () => {
+  //           pool.query.mockResolvedValueOnce([{ affectedRows: 0 }]);
+
+  //           const res = await request(app).put('/facturas/2').send(updatedFactura);
+  //           expect(res.statusCode).toEqual(404);
+  //           expect(res.body).toEqual({ error: 'Factura no encontrada '});
+  //       });
+
+  //       test('debería manejar errores al actualizar una factura', async () => {
+  //           pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
+
+  //           const res = await request(app).put('/facturas/1').send(updatedFactura);
+  //           expect(res.statusCode).toEqual(500);
+  //           expect(res.body).toEqual({ error: 'Error al actualizar la factura' });
+  //       });
   //   });
-
-  //   it('debería devolver 404 si la factura a actualizar no se encuentra', async () => {
-  //     const updatedFactura = { fecha_factura: '2023-07-02', metodo_pago: 'Crédito', descuentos: 20, impuesto: 12, tipo_facturacion: 'Venta' };
-  //     pool.query.mockResolvedValueOnce([{ affectedRows: 0 }]);
-
-  //     const res = await request(app)
-  //       .put('/api/facturas/999')
-  //       .send(updatedFactura);
-
-  //     expect(res.statusCode).toEqual(404);
-  //     expect(res.body).toEqual({ error: 'Factura no encontrada ' });
-  //     expect(pool.query).toHaveBeenCalled();
-  //   });
-
-  //   it('debería manejar errores al actualizar una factura', async () => {
-  //     const updatedFactura = { fecha_factura: '2023-07-02', metodo_pago: 'Crédito', descuentos: 20, impuesto: 12, tipo_facturacion: 'Venta' };
-  //     pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
-
-  //     const res = await request(app)
-  //       .put('/api/facturas/1')
-  //       .send(updatedFactura);
-
-  //     expect(res.statusCode).toEqual(500);
-  //     expect(res.body).toEqual({ error: 'Error al actualizar la factura' });
-  //     expect(pool.query).toHaveBeenCalled();
-  //   });
-  // });
 
   // // Test para DELETE /api/facturas/:id (eliminar factura)
   // describe('DELETE /api/facturas/:id', () => {

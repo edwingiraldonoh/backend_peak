@@ -28,18 +28,18 @@ router.get('/:id', async (req, res) => {
 
 //Crear un nuevo producto
 router.post('/', async (req, res) => {
-    const {id_productos, nombre_producto, descripcion_producto, precio_producto, tiempo_preparacion, categoria} = req.body;
+    const {id_producto, nombre_productos, descripcion_productos, precio_producto, tiempo_preparacion, categoria} = req.body;
 
-    if (!id_productos || !nombre_producto || !descripcion_producto || !precio_producto || !tiempo_preparacion || !categoria) {
-        return res.status(400).json({error: 'Nombre y precio son reuqeridos'});
+    if (!id_producto || !nombre_productos || !descripcion_productos || !precio_producto || !tiempo_preparacion || !categoria) {
+        return res.status(400).json({error: 'Nombre y precio son requeridos'});
     }
 
     try {
         const [result] = await pool.query(
-            'INSERT INTO productos (id_productos, nombre_producto, descripcion_producto, precio_producto, tiempo_preparacion categoria) VALUES (?, ?, ?, ?, ?)',
-            [id_productos, nombre_producto, descripcion_producto, precio_producto, categoria]
+            'INSERT INTO productos (id_producto, nombre_productos, descripcion_productos, precio_producto, tiempo_preparacion, categoria) VALUES (?, ?, ?, ?, ?, ?)',
+            [id_producto, nombre_productos, descripcion_productos, precio_producto, tiempo_preparacion, categoria]
         );
-        res.status(201).json({ id: result.insertId, id_productos, nombre_producto, descripcion_producto, precio_producto, tiempo_preparacion, categoria });
+        res.status(201).json({ id: result.insertId, id_producto, nombre_productos, descripcion_productos, precio_producto, tiempo_preparacion, categoria });
     } catch (error) {
         res.status(500).json({ error: 'Error al crear el producto' });
     }
@@ -47,12 +47,12 @@ router.post('/', async (req, res) => {
 
 //Actualizar producto existente
 router.put('/:id', async (req, res) => {
-    const { nombre_producto, descripcion_producto, precio_producto, tiempo_preparacion, categoria } = req.body;
+    const { nombre_productos, descripcion_productos, precio_producto, tiempo_preparacion, categoria } = req.body;
 
     try {
         const [result] = await pool.query(
-            'UPDATE productos SET nombre_producto = ?, descripcion_producto = ?, precio_producto = ?, tiempo_preparacion = ?, categoria = ? WHERE id_producto = ?',
-            [nombre_producto, descripcion_producto, precio_producto, tiempo_preparacion, categoria, req.params.id]
+            'UPDATE productos SET nombre_productos = ?, descripcion_productos = ?, precio_producto  = ?, tiempo_preparacion = ?, categoria = ? WHERE id_producto = ?',
+            [nombre_productos, descripcion_productos, precio_producto, tiempo_preparacion, categoria, req.params.id]
         );
 
         if (result.affectedRows === 0) return res.status(404).json({ error: 'Producto no encontrado '});

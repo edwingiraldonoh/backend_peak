@@ -37,88 +37,88 @@ describe('usuarios.routes.js', () => {
         jest.clearAllMocks();
     });
 
-    // // Test para obtener todos los usuarios
-    // describe('GET /api/usuarios', () => {
-    //     test('debería devolver todos los usuarios', async () => {
-    //         // Datos de usuarios simulados para la respuesta de la base de datos
-    //         const mockUsers = [{ id_usuario: 1, nombre_usuario: 'Juan' }, { id_usuario: 2, nombre_usuario: 'Maria' }];
-    //         // Configura el mock de pool.query para que devuelva los usuarios simulados
-    //         pool.query.mockResolvedValueOnce([mockUsers]);
+    // Test para obtener todos los usuarios
+    describe('GET /api/usuarios', () => {
+        test('debería devolver todos los usuarios', async () => {
+            // Datos de usuarios simulados para la respuesta de la base de datos
+            const mockUsers = [{ id_usuario: 1, nombre_usuario: 'Juan' }, { id_usuario: 2, nombre_usuario: 'Maria' }];
+            // Configura el mock de pool.query para que devuelva los usuarios simulados
+            pool.query.mockResolvedValueOnce([mockUsers]);
 
-    //         // Realiza una solicitud GET a /api/usuarios
-    //         const res = await request(app).get('/api/usuarios');
+            // Realiza una solicitud GET a /api/usuarios
+            const res = await request(app).get('/api/usuarios');
 
-    //         // Verifica que el estado de la respuesta sea 200 (OK)
-    //         expect(res.statusCode).toEqual(200);
-    //         // Verifica que el cuerpo de la respuesta sea igual a los usuarios simulados
-    //         expect(res.body).toEqual(mockUsers);
-    //         // Verifica que pool.query haya sido llamado una vez
-    //         expect(pool.query).toHaveBeenCalledTimes(1);
-    //         // Verifica que pool.query haya sido llamado con la consulta correcta
-    //         expect(pool.query).toHaveBeenCalledWith('SELECT * FROM usuarios');
-    //     });
+            // Verifica que el estado de la respuesta sea 200 (OK)
+            expect(res.statusCode).toEqual(200);
+            // Verifica que el cuerpo de la respuesta sea igual a los usuarios simulados
+            expect(res.body).toEqual(mockUsers);
+            // Verifica que pool.query haya sido llamado una vez
+            expect(pool.query).toHaveBeenCalledTimes(1);
+            // Verifica que pool.query haya sido llamado con la consulta correcta
+            expect(pool.query).toHaveBeenCalledWith('SELECT * FROM usuarios');
+        });
 
-    //     test('debería manejar errores al obtener usuarios', async () => {
-    //         // Simula un error en la base de datos
-    //         pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
+        test('debería manejar errores al obtener usuarios', async () => {
+            // Simula un error en la base de datos
+            pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
 
-    //         // Realiza una solicitud GET a /api/usuarios
-    //         const res = await request(app).get('/api/usuarios');
+            // Realiza una solicitud GET a /api/usuarios
+            const res = await request(app).get('/api/usuarios');
 
-    //         // Verifica que el estado de la respuesta sea 500 (Error interno del servidor)
-    //         expect(res.statusCode).toEqual(500);
-    //         // Verifica que el cuerpo de la respuesta contenga el mensaje de error esperado
-    //         expect(res.body).toEqual({ error: 'al obtener los datos del usuario' });
-    //     });
-    // });
+            // Verifica que el estado de la respuesta sea 500 (Error interno del servidor)
+            expect(res.statusCode).toEqual(500);
+            // Verifica que el cuerpo de la respuesta contenga el mensaje de error esperado
+            expect(res.body).toEqual({ error: 'al obtener los datos del usuario' });
+        });
+    });
 
-    // // Test para obtener un usuario por ID
-    // describe('GET /api/usuarios/:id', () => {
-    //     test('debería devolver un usuario por ID', async () => {
-    //         // Datos de un usuario simulado
-    //         const mockUser = { id_usuario: 1, nombre_usuario: 'Juan' };
-    //         // Configura el mock de pool.query para que devuelva el usuario simulado
-    //         pool.query.mockResolvedValueOnce([[mockUser]]);
+    // Test para obtener un usuario por ID
+    describe('GET /api/usuarios/:id', () => {
+        test('debería devolver un usuario por ID', async () => {
+            // Datos de un usuario simulado
+            const mockUser = { id_usuario: 1, nombre_usuario: 'Juan' };
+            // Configura el mock de pool.query para que devuelva el usuario simulado
+            pool.query.mockResolvedValueOnce([[mockUser]]);
 
-    //         // Realiza una solicitud GET a /api/usuarios/1
-    //         const res = await request(app).get('/api/usuarios/1');
+            // Realiza una solicitud GET a /api/usuarios/1
+            const res = await request(app).get('/api/usuarios/1');
 
-    //         // Verifica que el estado de la respuesta sea 200 (OK)
-    //         expect(res.statusCode).toEqual(200);
-    //         // Verifica que el cuerpo de la respuesta sea igual al usuario simulado
-    //         expect(res.body).toEqual(mockUser);
-    //         // Verifica que pool.query haya sido llamado una vez
-    //         expect(pool.query).toHaveBeenCalledTimes(1);
-    //         // Verifica que pool.query haya sido llamado con la consulta y el ID correctos
-    //         expect(pool.query).toHaveBeenCalledWith('SELECT * FROM usuarios WHERE id_usuario = ?', ['1']);
-    //     });
+            // Verifica que el estado de la respuesta sea 200 (OK)
+            expect(res.statusCode).toEqual(200);
+            // Verifica que el cuerpo de la respuesta sea igual al usuario simulado
+            expect(res.body).toEqual(mockUser);
+            // Verifica que pool.query haya sido llamado una vez
+            expect(pool.query).toHaveBeenCalledTimes(1);
+            // Verifica que pool.query haya sido llamado con la consulta y el ID correctos
+            expect(pool.query).toHaveBeenCalledWith('SELECT * FROM usuarios WHERE id_usuario = ?', ['1']);
+        });
 
-    //     test('debería devolver 404 si el usuario no es encontrado', async () => {
-    //         // Configura el mock de pool.query para que devuelva un array vacío (usuario no encontrado)
-    //         pool.query.mockResolvedValueOnce([[]]);
+        test('debería devolver 404 si el usuario no es encontrado', async () => {
+            // Configura el mock de pool.query para que devuelva un array vacío (usuario no encontrado)
+            pool.query.mockResolvedValueOnce([[]]);
 
-    //         // Realiza una solicitud GET a /api/usuarios/999
-    //         const res = await request(app).get('/api/usuarios/999');
+            // Realiza una solicitud GET a /api/usuarios/999
+            const res = await request(app).get('/api/usuarios/999');
 
-    //         // Verifica que el estado de la respuesta sea 404 (No encontrado)
-    //         expect(res.statusCode).toEqual(404);
-    //         // Verifica que el cuerpo de la respuesta contenga el mensaje de error esperado
-    //         expect(res.body).toEqual({ error: 'Usuario no encontrado' });
-    //     });
+            // Verifica que el estado de la respuesta sea 404 (No encontrado)
+            expect(res.statusCode).toEqual(404);
+            // Verifica que el cuerpo de la respuesta contenga el mensaje de error esperado
+            expect(res.body).toEqual({ error: 'Usuario no encontrado' });
+        });
 
-    //     test('debería manejar errores al obtener un usuario por ID', async () => {
-    //         // Simula un error en la base de datos
-    //         pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
+        test('debería manejar errores al obtener un usuario por ID', async () => {
+            // Simula un error en la base de datos
+            pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
 
-    //         // Realiza una solicitud GET a /api/usuarios/1
-    //         const res = await request(app).get('/api/usuarios/1');
+            // Realiza una solicitud GET a /api/usuarios/1
+            const res = await request(app).get('/api/usuarios/1');
 
-    //         // Verifica que el estado de la respuesta sea 500 (Error interno del servidor)
-    //         expect(res.statusCode).toEqual(500);
-    //         // Verifica que el cuerpo de la respuesta contenga el mensaje de error esperado
-    //         expect(res.body).toEqual({ error: 'Error al obtener el usuario' });
-    //     });
-    // });
+            // Verifica que el estado de la respuesta sea 500 (Error interno del servidor)
+            expect(res.statusCode).toEqual(500);
+            // Verifica que el cuerpo de la respuesta contenga el mensaje de error esperado
+            expect(res.body).toEqual({ error: 'Error al obtener el usuario' });
+        });
+    });
 
     // // Test para crear un nuevo usuario
     // describe('POST /api/usuarios', () => {
@@ -282,49 +282,49 @@ describe('usuarios.routes.js', () => {
     //     });
     // });
 
-    // // Test para eliminar un usuario
-    // describe('DELETE /api/usuarios/:id', () => {
-    //     test('debería eliminar un usuario existente', async () => {
-    //         // Configura el mock de pool.query para simular una eliminación exitosa (1 fila afectada)
-    //         pool.query.mockResolvedValueOnce([{ affectedRows: 1 }]);
+    // Test para eliminar un usuario
+    describe('DELETE /api/usuarios/:id', () => {
+        test('debería eliminar un usuario existente', async () => {
+            // Configura el mock de pool.query para simular una eliminación exitosa (1 fila afectada)
+            pool.query.mockResolvedValueOnce([{ affectedRows: 1 }]);
 
-    //         // Realiza una solicitud DELETE a /api/usuarios/1
-    //         const res = await request(app).delete('/api/usuarios/1');
+            // Realiza una solicitud DELETE a /api/usuarios/1
+            const res = await request(app).delete('/api/usuarios/1');
 
-    //         // Verifica que el estado de la respuesta sea 200 (OK)
-    //         expect(res.statusCode).toEqual(200);
-    //         // Verifica que el cuerpo de la respuesta contenga el mensaje de éxito
-    //         expect(res.body).toEqual({ message: 'Usuario eliminado corectamente' });
-    //         // Verifica que pool.query haya sido llamado una vez
-    //         expect(pool.query).toHaveBeenCalledTimes(1);
-    //         // Verifica que pool.query haya sido llamado con la consulta y el ID correctos
-    //         expect(pool.query).toHaveBeenCalledWith('DELETE FROM usuarios WHERE id_usuario = ?', ['1']);
-    //     });
+            // Verifica que el estado de la respuesta sea 200 (OK)
+            expect(res.statusCode).toEqual(200);
+            // Verifica que el cuerpo de la respuesta contenga el mensaje de éxito
+            expect(res.body).toEqual({ message: 'Usuario eliminado corectamente' });
+            // Verifica que pool.query haya sido llamado una vez
+            expect(pool.query).toHaveBeenCalledTimes(1);
+            // Verifica que pool.query haya sido llamado con la consulta y el ID correctos
+            expect(pool.query).toHaveBeenCalledWith('DELETE FROM usuarios WHERE id_usuario = ?', ['1']);
+        });
 
-    //     test('debería devolver 404 si el usuario a eliminar no es encontrado', async () => {
-    //         // Configura el mock de pool.query para simular que no se afectó ninguna fila (usuario no encontrado)
-    //         pool.query.mockResolvedValueOnce([{ affectedRows: 0 }]);
+        test('debería devolver 404 si el usuario a eliminar no es encontrado', async () => {
+            // Configura el mock de pool.query para simular que no se afectó ninguna fila (usuario no encontrado)
+            pool.query.mockResolvedValueOnce([{ affectedRows: 0 }]);
 
-    //         // Realiza una solicitud DELETE a /api/usuarios/999
-    //         const res = await request(app).delete('/api/usuarios/999');
+            // Realiza una solicitud DELETE a /api/usuarios/999
+            const res = await request(app).delete('/api/usuarios/999');
 
-    //         // Verifica que el estado de la respuesta sea 404 (No encontrado)
-    //         expect(res.statusCode).toEqual(404);
-    //         // Verifica que el cuerpo de la respuesta contenga el mensaje de error esperado
-    //         expect(res.body).toEqual({ error: 'Usuario no encontrado' });
-    //     });
+            // Verifica que el estado de la respuesta sea 404 (No encontrado)
+            expect(res.statusCode).toEqual(404);
+            // Verifica que el cuerpo de la respuesta contenga el mensaje de error esperado
+            expect(res.body).toEqual({ error: 'Usuario no encontrado' });
+        });
 
-    //     test('debería manejar errores al eliminar un usuario', async () => {
-    //         // Simula un error en la base de datos
-    //         pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
+        test('debería manejar errores al eliminar un usuario', async () => {
+            // Simula un error en la base de datos
+            pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
 
-    //         // Realiza una solicitud DELETE a /api/usuarios/1
-    //         const res = await request(app).delete('/api/usuarios/1');
+            // Realiza una solicitud DELETE a /api/usuarios/1
+            const res = await request(app).delete('/api/usuarios/1');
 
-    //         // Verifica que el estado de la respuesta sea 500 (Error interno del servidor)
-    //         expect(res.statusCode).toEqual(500);
-    //         // Verifica que el cuerpo de la respuesta contenga el mensaje de error esperado
-    //         expect(res.body).toEqual({ error: 'Error al eliminar el usuario' });
-    //     });
-    // });
+            // Verifica que el estado de la respuesta sea 500 (Error interno del servidor)
+            expect(res.statusCode).toEqual(500);
+            // Verifica que el cuerpo de la respuesta contenga el mensaje de error esperado
+            expect(res.body).toEqual({ error: 'Error al eliminar el usuario' });
+        });
+    });
 });
