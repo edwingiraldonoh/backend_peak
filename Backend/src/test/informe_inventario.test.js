@@ -1,202 +1,246 @@
+// Import necessary libraries for testing
 import request from 'supertest';
 import express from 'express';
-import { pool } from '../db.js'; 
+import { pool } from '../db.js'; // Ensure the path to your db.js file is correct
 
-// y el archivo de test está en src/test/
-import informeInventarioRoutes from '../routes/informe_inventario.Routes.js';
+// Import the router you want to test
+import informeRoutes from '../routes/informe_inventario.Routes.js'; // Ensure the path is correct
 
-// Mockea el módulo 'db.js' para controlar el comportamiento de la base de datos
+// Mock the 'db.js' module to control database responses
 jest.mock('../db.js', () => ({
     pool: {
-        query: jest.fn(), // Mockea la función query del pool
+        query: jest.fn(), // Mock the query function of the pool
     },
 }));
 
-// Crea una aplicación Express para testear el router
+// Create an Express application for testing
 const app = express();
-app.use(express.json()); // Necesario para parsear el body de las peticiones
-app.use('/informes', informeInventarioRoutes); // Monta el router en una ruta base
+app.use(express.json()); // Enable JSON body parsing for requests
+app.use('/api/informe_inventario', informeRoutes); // Mount the router on a base path
 
-describe('informe_inventario.Routes.js', () => {
-    // Limpia los mocks antes de cada test
+describe('API de Informe de Inventario', () => {
+    // Clear mocks before each test
     beforeEach(() => {
-        jest.clearAllMocks();
+        pool.query.mockClear();
     });
 
-    // Test para la ruta GET /informes (obtener todos los informes)
-    describe('GET /informes', () => {
-        test('Debería obtener todos los informes de inventario', async () => {
-            // Datos de ejemplo que el mock de pool.query devolverá
-            const mockInformes = [
-                { id_informe: 1, fecha_informe: '2024-01-01', descripcion_informe: 'Informe A' },
-                { id_informe: 2, fecha_informe: '2024-01-02', descripcion_informe: 'Informe B' },
-            ];
-            // Configura el mock para que devuelva los datos esperados
-            pool.query.mockResolvedValueOnce([mockInformes]);
+    // Test for getting all inventory reports
+    describe('GET /api/informe_inventario', () => {
+        test('Should get all inventory reports', async () => {
+            // Configure the mock to return inventory report data
+            pool.query.mockResolvedValueOnce([[{ id_informe: 1, descripcion_informe: 'Informe mensual' }]]);
 
-            // Realiza la petición GET
-            const res = await request(app).get('/informes');
+            // Make the GET request
+            const res = await request(app).get('/api/informe_inventario');
 
-            // Afirmaciones
-            expect(res.statusCode).toEqual(200); // Espera un status 200 OK
-            expect(res.body).toEqual(mockInformes); // Espera que el cuerpo de la respuesta sea igual a los datos mockeados
-            expect(pool.query).toHaveBeenCalledTimes(1); // Espera que pool.query haya sido llamado una vez
-            expect(pool.query).toHaveBeenCalledWith('SELECT * FROM informe_inventario'); // Espera que la consulta sea la correcta
-        });
-
-        test('Debería manejar errores al obtener todos los informes', async () => {
-            // Configura el mock para que rechace la promesa con un error
-            pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
-
-            // Realiza la petición GET
-            const res = await request(app).get('/informes');
-
-            // Afirmaciones
-            expect(res.statusCode).toEqual(500); // Espera un status 500 Internal Server Error
-            expect(res.body).toEqual({ error: 'al obtener las encuestas de satisfaccion' }); // Espera el mensaje de error específico
-        });
-    });
-
-    // Test para la ruta GET /informes/:id (obtener informe por ID)
-    describe('GET /informes/:id', () => {
-        test('Debería obtener un informe de inventario por ID', async () => {
-            const mockInforme = { id_informe: 1, fecha_informe: '2024-01-01', descripcion_informe: 'Informe A' };
-            pool.query.mockResolvedValueOnce([[mockInforme]]); // Nota el doble array para simular rows[0]
-
-            const res = await request(app).get('/informes/1');
-
+            // Verify assertions
             expect(res.statusCode).toEqual(200);
-            expect(res.body).toEqual(mockInforme);
-            expect(pool.query).toHaveBeenCalledTimes(1);
-            expect(pool.query).toHaveBeenCalledWith('SELECT * FROM informe_inventario WHERE id_informe = ?', ['1']);
+            expect(res.body).toEqual([{ id_informe: 1, descripcion_informe: 'Informe mensual' }]);
+            expect(pool.query).toHaveBeenCalledWith('SELECT * FROM informe_inventario');
         });
 
-        test('Debería devolver 404 si el informe no se encuentra', async () => {
-            pool.query.mockResolvedValueOnce([[]]); // Simula que no se encontraron filas
+        test('Should handle errors when getting inventory reports', async () => {
+            // Configure the mock to throw an error
+            pool.query.mockRejectedValueOnce(new Error('Database error'));
 
-            const res = await request(app).get('/informes/999');
+            // Make the GET request
+            const res = await request(app).get('/api/informe_inventario');
 
+            // Verify assertions
+            expect(res.statusCode).toEqual(500);
+            expect(res.body).toEqual({ error: 'al obtener las encuestas de satisfaccion' }); // Note: This error message seems to be a copy-paste error from another route, it should ideally be 'al obtener los informes de inventario'
+        });
+    });
+
+    // Test for getting an inventory report by ID
+    describe('GET /api/informe_inventario/:id', () => {
+        test('Should get an inventory report by ID', async () => {
+            // Configure the mock to return a specific inventory report
+            pool.query.mockResolvedValueOnce([[{ id_informe: 4, descripcion_informe: 'Informe mensual' }]]);
+
+            // Make the GET request
+            const res = await request(app).get('/api/informe_inventario/4');
+
+            // Verify assertions
+            expect(res.statusCode).toEqual(200);
+            expect(res.body).toEqual({ id_informe: 4, descripcion_informe: 'Informe mensual' });
+            expect(pool.query).toHaveBeenCalledWith('SELECT * FROM informe_inventario WHERE id_informe = ?', ['4']);
+        });
+
+        test('Should return 404 if the inventory report is not found', async () => {
+            // Configure the mock to return an empty array (report not found)
+            pool.query.mockResolvedValueOnce([[]]);
+
+            // Make the GET request
+            const res = await request(app).get('/api/informe_inventario/999');
+
+            // Verify assertions
             expect(res.statusCode).toEqual(404);
             expect(res.body).toEqual({ error: 'Informe no encontrado' });
         });
 
-        test('Debería manejar errores al obtener el informe por ID', async () => {
-            pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
+        test('Should handle errors when getting an inventory report by ID', async () => {
+            // Configure the mock to throw an error
+            pool.query.mockRejectedValueOnce(new Error('Database error'));
 
-            const res = await request(app).get('/informes/1');
+            // Make the GET request
+            const res = await request(app).get('/api/informe_inventario/4');
 
+            // Verify assertions
             expect(res.statusCode).toEqual(500);
             expect(res.body).toEqual({ error: 'Error al obtener el informe' });
         });
     });
 
-    // // Test para la ruta POST /informes (crear un nuevo informe)
-    // describe('POST /informes', () => {
-    //     const newInforme = {
-    //         id_informe: 3,
-    //         id_inventario: 1,
-    //         fecha_informe: '2023-01-03',
-    //         descripcion_informe: 'Revisión de inventario trimestral',
-    //     };
+    // Test for creating a new inventory report
+    describe('POST /api/informe_inventario', () => {
+        const newInforme = {
+            id_informe: 4,
+            id_inventario: 1,
+            fecha_informe: '2023-07-22',
+            descripcion_informe: 'Nuevo informe de inventario'
+        };
 
-    //     test('debería crear un nuevo informe de inventario', async () => {
-    //         pool.query.mockResolvedValueOnce([{ insertId: 3  }]);
+        test('Should create a new inventory report', async () => {
+            // Configure the mock to simulate a successful insertion
+            pool.query.mockResolvedValueOnce([{ insertId: 4 }]);
 
-    //         const res = await request(app).post('/informes').send(newInforme);
-    //         expect(res.statusCode).toEqual(201);
-    //         expect(res.body).toEqual({
-    //             id: 3,
-    //             id_informe: newInforme.id_informe,
-    //             id_inventario: newInforme.id_inventario,
-    //             fecha_informe: newInforme.fecha_informe,
-    //             descripcion_informe: newInforme.descripcion_informe,
-    //         });
-    //         expect(pool.query).toHaveBeenCalledWith(
-    //             'INSERT INTO informe_inventario (id_informe, id_inventario, fecha_informe, descripcion_informe) VALUES (?, ?, ?, ?)',
-    //             [newInforme.id_informe, newInforme.id_inventario, newInforme.fecha_informe, newInforme.descripcion_informe]
-    //         );
-    //     });
+            // Make the POST request
+            const res = await request(app)
+                .post('/api/informe_inventario')
+                .send(newInforme);
 
-    //     test('debería devolver 400 si faltan datos requeridos', async () => {
-    //         const incompleteInforme = { id_informe: 1, id_inventario: 1 }; // Faltan campos
-    //         const res = await request(app).post('/informes-inventario').send(incompleteInforme);
-    //         expect(res.statusCode).toEqual(400);
-    //         expect(res.body).toEqual({ error: 'La descripcion es necesaria' });
-    //     });
-
-    //     test('debería manejar errores al crear un informe de inventario', async () => {
-    //         pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
-
-    //         const res = await request(app).post('/informes-inventario').send(newInforme);
-    //         expect(res.statusCode).toEqual(500);
-    //         expect(res.body).toEqual({ error: 'Error al crear la descripcion del informe' });
-    //     });
-    // });
-
-    // // Test para la ruta PUT /informes/:id (actualizar un informe)
-    // describe('PUT /informes/:id', () => {
-    //     const updatedInforme = {
-    //         id_inventario: 1,
-    //         fecha_informe: '2023-01-05',
-    //         descripcion_informe: 'Informe mensual de stock actualizado',
-    //     };
-
-    //     test('debería actualizar un informe de inventario existente', async () => {
-    //         pool.query.mockResolvedValueOnce([{ affectedRows: 1 }]);
-
-    //         const res = await request(app).put('/informes/1').send(updatedInforme);
-    //         expect(res.statusCode).toEqual(200);
-    //         expect(res.body).toEqual({ message: 'Informe de inventario actualizado correctamente' });
-    //         expect(pool.query).toHaveBeenCalledWith(
-    //             'UPDATE informe_inventario SET id_inventario = ?, fecha_informe = ?, descripcion_informe = ? WHERE id_informe = ?',
-    //             [updatedInforme.id_inventario, updatedInforme.fecha_informe, updatedInforme.descripcion_informe, '1']
-    //         );
-    //     });
-
-    //     test('debería devolver 404 si el informe a actualizar no se encuentra', async () => {
-    //         pool.query.mockResolvedValueOnce([{ affectedRows: 0 }]);
-
-    //         const res = await request(app).put('/informes/999').send(updatedInforme);
-    //         expect(res.statusCode).toEqual(404);
-    //         expect(res.body).toEqual({ error: 'Informe no encontrado '});
-    //     });
-
-    //     test('debería manejar errores al actualizar un informe de inventario', async () => {
-    //         pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
-
-    //         const res = await request(app).put('/informes/1').send(updatedInforme);
-    //         expect(res.statusCode).toEqual(500);
-    //         expect(res.body).toEqual({ error: 'Error al actualizar el informe de inventario' });
-    //     });
-    // });
-
-    // Test para la ruta DELETE /informes/:id (eliminar un informe)
-    describe('DELETE /informes/:id', () => {
-        test('Debería eliminar un informe de inventario existente', async () => {
-            pool.query.mockResolvedValueOnce([{ affectedRows: 1 }]); // Simula que una fila fue afectada (eliminada)
-
-            const res = await request(app).delete('/informes/1');
-
-            expect(res.statusCode).toEqual(200);
-            expect(res.body).toEqual({ message: 'Informe eliminado correctamente' });
-            expect(pool.query).toHaveBeenCalledTimes(1);
-            expect(pool.query).toHaveBeenCalledWith('DELETE FROM informe_inventario WHERE id_informe = ?', ['1']);
+            // Verify assertions
+            expect(res.statusCode).toEqual(201);
+            expect(res.body).toEqual({ id: 4, ...newInforme });
+            expect(pool.query).toHaveBeenCalledWith(
+                'INSERT INTO informe_inventario (id_informe, id_inventario, fecha_informe, descripcion_informe) VALUES (?, ?, ?, ?)',
+                [newInforme.id_informe, newInforme.id_inventario, newInforme.fecha_informe, newInforme.descripcion_informe]
+            );
         });
 
-        test('Debería devolver 404 si el informe a eliminar no se encuentra', async () => {
-            pool.query.mockResolvedValueOnce([{ affectedRows: 0 }]); // Simula que ninguna fila fue afectada
+        test('Should return 400 if required fields are missing', async () => {
+            // Send an object with some required fields missing
+            const incompleteInforme = {
+                id_inventario: 100,
+                fecha_informe: '2023-07-22'
+            };
 
-            const res = await request(app).delete('/informes/999');
+            // Make the POST request
+            const res = await request(app)
+                .post('/api/informe_inventario')
+                .send(incompleteInforme);
 
+            // Verify assertions
+            expect(res.statusCode).toEqual(400);
+            expect(res.body).toEqual({ error: 'La descripcion es necesaria' });
+        });
+
+        test('Should handle errors when creating an inventory report', async () => {
+            // Configure the mock to throw an error
+            pool.query.mockRejectedValueOnce(new Error('Database error'));
+
+            // Make the POST request
+            const res = await request(app)
+                .post('/api/informe_inventario')
+                .send(newInforme);
+
+            // Verify assertions
+            expect(res.statusCode).toEqual(500);
+            expect(res.body).toEqual({ error: 'Error al crear la descripcion del informe' });
+        });
+    });
+
+    // Test for updating an existing inventory report
+    describe('PUT /api/informe_inventario/:id', () => {
+        const updatedInforme = {
+            id_inventario: 1,
+            fecha_informe: '2023-07-23',
+            descripcion_informe: 'Informe de inventario actualizado'
+        };
+
+        test('Should update an existing inventory report', async () => {
+            // Configure the mock to simulate a successful update
+            pool.query.mockResolvedValueOnce([{ affectedRows: 4 }]);
+
+            // Make the PUT request
+            const res = await request(app)
+                .put('/api/informe_inventario/4')
+                .send(updatedInforme);
+
+            // Verify assertions
+            expect(res.statusCode).toEqual(200);
+            expect(res.body).toEqual({ message: 'Informe de inventario actualizado correctamente' });
+            expect(pool.query).toHaveBeenCalledWith(
+                'UPDATE informe_inventario SET id_inventario = ?, fecha_informe = ?, descripcion_informe = ? WHERE id_informe = ?',
+                [updatedInforme.id_inventario, updatedInforme.fecha_informe, updatedInforme.descripcion_informe, '4']
+            );
+        });
+
+        test('Should return 404 if the inventory report to update is not found', async () => {
+            // Configure the mock to simulate that the report was not found
+            pool.query.mockResolvedValueOnce([{ affectedRows: 0 }]);
+
+            // Make the PUT request
+            const res = await request(app)
+                .put('/api/informe_inventario/999')
+                .send(updatedInforme);
+
+            // Verify assertions
+            expect(res.statusCode).toEqual(404);
+            expect(res.body).toEqual({ error: 'Informe no encontrado '});
+        });
+
+        test('Should handle errors when updating an inventory report', async () => {
+            // Configure the mock to throw an error
+            pool.query.mockRejectedValueOnce(new Error('Database error'));
+
+            // Make the PUT request
+            const res = await request(app)
+                .put('/api/informe_inventario/4')
+                .send(updatedInforme);
+
+            // Verify assertions
+            expect(res.statusCode).toEqual(500);
+            expect(res.body).toEqual({ error: 'Error al actualizar el informe de inventario' });
+        });
+    });
+
+    // Test for deleting an inventory report
+    describe('DELETE /api/informe_inventario/:id', () => {
+        test('Should delete an inventory report', async () => {
+            // Configure the mock to simulate a successful deletion
+            pool.query.mockResolvedValueOnce([{ affectedRows: 1 }]);
+
+            // Make the DELETE request
+            const res = await request(app).delete('/api/informe_inventario/4');
+
+            // Verify assertions
+            expect(res.statusCode).toEqual(200);
+            expect(res.body).toEqual({ message: 'Informe eliminado correctamente' });
+            expect(pool.query).toHaveBeenCalledWith('DELETE FROM informe_inventario WHERE id_informe = ?', ['4']);
+        });
+
+        test('Should return 404 if the inventory report to delete is not found', async () => {
+            // Configure the mock to simulate that the report was not found
+            pool.query.mockResolvedValueOnce([{ affectedRows: 0 }]);
+
+            // Make the DELETE request
+            const res = await request(app).delete('/api/informe_inventario/999');
+
+            // Verify assertions
             expect(res.statusCode).toEqual(404);
             expect(res.body).toEqual({ error: 'Informe no encontrado' });
         });
 
-        test('Debería manejar errores al eliminar un informe', async () => {
-            pool.query.mockRejectedValueOnce(new Error('Error de eliminación'));
+        test('Should handle errors when deleting an inventory report', async () => {
+            // Configure the mock to throw an error
+            pool.query.mockRejectedValueOnce(new Error('Database error'));
 
-            const res = await request(app).delete('/informes/1');
+            // Make the DELETE request
+            const res = await request(app).delete('/api/informe_inventario/4');
 
+            // Verify assertions
             expect(res.statusCode).toEqual(500);
             expect(res.body).toEqual({ error: 'Error al eliminar el informe' });
         });

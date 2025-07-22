@@ -27,9 +27,6 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-
-
-
 //Crear un nuevo usuario
 router.post('/', async (req, res) => {
     const {id_usuario, nombre_usuario, apellido_usuario, estado, contraseña, correo_electronico, telefono, fecha_creacion, fecha_modificacion} = req.body;

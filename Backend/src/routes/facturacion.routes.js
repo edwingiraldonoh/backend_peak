@@ -30,7 +30,7 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
     const {id_factura, id_venta, fecha_factura, metodo_pago, descuentos, impuestos, tipos_factura} = req.body;
 
-    if (!id_factura || !id_venta || !fecha_factura || !metodo_pago || !descuentos || !impuestos || !tipos_factura) {
+    if (!id_factura || !id_venta || !fecha_factura || !metodo_pago || !impuestos || !tipos_factura) {
         return res.status(400).json({error: 'Metodo de pago y tipo de facturacion son requeridos'});
     }
 

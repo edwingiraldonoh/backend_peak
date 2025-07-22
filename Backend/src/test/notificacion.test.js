@@ -1,208 +1,252 @@
+// Importa las librerías necesarias para las pruebas
 import request from 'supertest';
 import express from 'express';
-import { pool } from '../db.js'; 
-import notificacionRoutes from '../routes/notificacion.routes.js';
+import { pool } from '../db.js'; // Asegúrate de que la ruta a tu archivo db.js sea correcta
 
-// Mockea el módulo 'db.js' para controlar el comportamiento de la base de datos
+// Importa el router que quieres probar
+import notificacionRoutes from '../routes/notificacion.routes.js'; // Asegúrate de que la ruta sea correcta
+
+// Mockea el módulo 'db.js' para controlar las respuestas de la base de datos
 jest.mock('../db.js', () => ({
     pool: {
-        query: jest.fn(),
+        query: jest.fn(), // Mockea la función query del pool
     },
 }));
 
-// Crea una aplicación Express para testear el router
+// Crea una aplicación Express para las pruebas
 const app = express();
-app.use(express.json()); // Necesario para parsear el body de las peticiones
-app.use('/notificaciones', notificacionRoutes); // Monta el router en una ruta base
+app.use(express.json()); // Habilita el parsing de JSON en el cuerpo de las solicitudes
+app.use('/api/notificacion', notificacionRoutes); // Monta el router en una ruta base
 
-describe('notificacion.routes.js', () => {
-    // Limpia los mocks antes de cada test
+describe('API de Notificación', () => {
+    // Limpia los mocks antes de cada prueba
     beforeEach(() => {
-        jest.clearAllMocks();
+        pool.query.mockClear();
     });
 
-    // Test para la ruta GET /notificaciones (obtener todas las notificaciones)
-    describe('GET /notificaciones', () => {
+    // Prueba para obtener todas las notificaciones
+    describe('GET /api/notificacion', () => {
         test('Debería obtener todas las notificaciones', async () => {
-            // Datos de ejemplo que el mock de pool.query devolverá
-            const mockNotificaciones = [
-                { id_notificacion: 1, mensaje_notificacion: 'Mensaje 1', fecha_notificacion: '2024-01-01', estado_notificacion: 'enviado', destinatario: 'usuario1' },
-                { id_notificacion: 2, mensaje_notificacion: 'Mensaje 2', fecha_notificacion: '2024-01-02', estado_notificacion: 'pendiente', destinatario: 'usuario2' },
-            ];
-            // Configura el mock para que devuelva los datos esperados
-            pool.query.mockResolvedValueOnce([mockNotificaciones]);
+            // Configura el mock para devolver datos de notificaciones
+            pool.query.mockResolvedValueOnce([[{ id_notificacion: 1, mensaje_notificacion: 'Pedido enviado', estado_notificacion: 'enviado' }]]);
 
-            // Realiza la petición GET
-            const res = await request(app).get('/notificaciones');
+            // Realiza la solicitud GET
+            const res = await request(app).get('/api/notificacion');
 
-            // Afirmaciones
-            expect(res.statusCode).toEqual(200); // Espera un status 200 OK
-            expect(res.body).toEqual(mockNotificaciones); // Espera que el cuerpo de la respuesta sea igual a los datos mockeados
-            expect(pool.query).toHaveBeenCalledTimes(1); // Espera que pool.query haya sido llamado una vez
-            expect(pool.query).toHaveBeenCalledWith('SELECT * FROM notificacion'); // Espera que la consulta sea la correcta
+            // Verifica las aserciones
+            expect(res.statusCode).toEqual(200);
+            expect(res.body).toEqual([{ id_notificacion: 1, mensaje_notificacion: 'Pedido enviado', estado_notificacion: 'enviado' }]);
+            expect(pool.query).toHaveBeenCalledWith('SELECT * FROM notificacion');
         });
 
-        test('Debería manejar errores al obtener todas las notificaciones', async () => {
-            // Configura el mock para que rechace la promesa con un error
-            pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
+        test('Debería manejar errores al obtener notificaciones', async () => {
+            // Configura el mock para lanzar un error
+            pool.query.mockRejectedValueOnce(new Error('Database error'));
 
-            // Realiza la petición GET
-            const res = await request(app).get('/notificaciones');
+            // Realiza la solicitud GET
+            const res = await request(app).get('/api/notificacion');
 
-            // Afirmaciones
-            expect(res.statusCode).toEqual(500); // Espera un status 500 Internal Server Error
-            expect(res.body).toEqual({ error: 'al obtener los datos de la notificacion' }); // Espera el mensaje de error específico
+            // Verifica las aserciones
+            expect(res.statusCode).toEqual(500);
+            expect(res.body).toEqual({ error: 'al obtener los datos de la notificacion' });
         });
     });
 
-    // Test para la ruta GET /notificaciones/:id (obtener notificación por ID)
-    describe('GET /notificaciones/:id', () => {
+    // Prueba para obtener una notificación por ID
+    describe('GET /api/notificacion/:id', () => {
         test('Debería obtener una notificación por ID', async () => {
-            const mockNotificacion = { id_notificacion: 1, mensaje_notificacion: 'Mensaje 1', fecha_notificacion: '2024-01-01', estado_notificacion: 'enviado', destinatario: 'usuario1' };
-            pool.query.mockResolvedValueOnce([[mockNotificacion]]); // Nota el doble array para simular rows[0]
+            // Configura el mock para devolver una notificación específica
+            pool.query.mockResolvedValueOnce([[{ id_notificacion: 1, mensaje_notificacion: 'Pedido enviado', estado_notificacion: 'enviado' }]]);
 
-            const res = await request(app).get('/notificaciones/1');
+            // Realiza la solicitud GET
+            const res = await request(app).get('/api/notificacion/1');
 
+            // Verifica las aserciones
             expect(res.statusCode).toEqual(200);
-            expect(res.body).toEqual(mockNotificacion);
-            expect(pool.query).toHaveBeenCalledTimes(1);
+            expect(res.body).toEqual({ id_notificacion: 1, mensaje_notificacion: 'Pedido enviado', estado_notificacion: 'enviado' });
             expect(pool.query).toHaveBeenCalledWith('SELECT * FROM notificacion WHERE id_notificacion = ?', ['1']);
         });
 
         test('Debería devolver 404 si la notificación no se encuentra', async () => {
-            pool.query.mockResolvedValueOnce([[]]); // Simula que no se encontraron filas
+            // Configura el mock para devolver un array vacío (notificación no encontrada)
+            pool.query.mockResolvedValueOnce([[]]);
 
-            const res = await request(app).get('/notificaciones/999');
+            // Realiza la solicitud GET
+            const res = await request(app).get('/api/notificacion/999');
 
+            // Verifica las aserciones
             expect(res.statusCode).toEqual(404);
             expect(res.body).toEqual({ error: 'notificacion no encontrada' });
         });
 
-        test('Debería manejar errores al obtener la notificación por ID', async () => {
-            pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
+        test('Debería manejar errores al obtener una notificación por ID', async () => {
+            // Configura el mock para lanzar un error
+            pool.query.mockRejectedValueOnce(new Error('Database error'));
 
-            const res = await request(app).get('/notificaciones/1');
+            // Realiza la solicitud GET
+            const res = await request(app).get('/api/notificacion/1');
 
+            // Verifica las aserciones
             expect(res.statusCode).toEqual(500);
             expect(res.body).toEqual({ error: 'Error al obtener la notificacion' });
         });
     });
 
-    // // Test para la ruta POST /notificaciones (crear una nueva notificación)
-    // describe('POST /notificaciones', () => {
-    //     test('Debería crear una nueva notificación', async () => {
-    //         const newNotificacion = { mensaje_notificacion: 'Nuevo mensaje', fecha_notificacion: '2024-07-03', estado_notificacion: 'creado', destinatario: 'usuario3' };
-    //         // Simula el resultado de una inserción en la base de datos
-    //         pool.query.mockResolvedValueOnce([{ insertId: 3 }]);
+    // Prueba para crear una nueva notificación
+    describe('POST /api/notificacion', () => {
+        const newNotificacion = {
+            id_notificacion: 10,
+            id_usuario: 1,
+            id_pedido: 1,
+            mensaje_notificacion: 'Su pedido ha sido despachado.',
+            fecha_notificacion: '2023-07-22',
+            estado_notificacion: 'enviado',
+            destinatario: 'cliente@example.com'
+        };
 
-    //         const res = await request(app)
-    //             .post('/notificaciones')
-    //             .send(newNotificacion);
+        test('Debería crear una nueva notificación', async () => {
+            // Configura el mock para simular una inserción exitosa
+            pool.query.mockResolvedValueOnce([{ insertId: 10 }]);
 
-    //         expect(res.statusCode).toEqual(201); // Espera un status 201 Created
-    //         expect(res.body).toEqual({ id: 3, ...newNotificacion }); // Espera el ID insertado y los datos de la notificación
-    //         expect(pool.query).toHaveBeenCalledTimes(1);
-    //         expect(pool.query).toHaveBeenCalledWith(
-    //             'INSERT INTO notificacion (mensaje_notificacion, fecha_notificacion, estado_notificacion, destinatario) VALUES (?, ?, ?)',
-    //             [newNotificacion.mensaje_notificacion, newNotificacion.fecha_notificacion, newNotificacion.estado_notificacion, newNotificacion.destinatario]
-    //         );
-    //     });
+            // Realiza la solicitud POST
+            const res = await request(app)
+                .post('/api/notificacion')
+                .send(newNotificacion);
 
-    //     test('Debería devolver 400 si faltan campos requeridos', async () => {
-    //         const incompleteNotificacion = { mensaje_notificacion: 'Mensaje incompleto' }; // Faltan fecha_notificacion, estado_notificacion, destinatario
+            // Verifica las aserciones
+            expect(res.statusCode).toEqual(201);
+            expect(res.body).toEqual({ id: 10, ...newNotificacion });
+            expect(pool.query).toHaveBeenCalledWith(
+                'INSERT INTO notificacion (id_notificacion, id_usuario, id_pedido, mensaje_notificacion, fecha_notificacion, estado_notificacion, destinatario) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                [newNotificacion.id_notificacion, newNotificacion.id_usuario, newNotificacion.id_pedido, newNotificacion.mensaje_notificacion, newNotificacion.fecha_notificacion, newNotificacion.estado_notificacion, newNotificacion.destinatario]
+            );
+        });
 
-    //         const res = await request(app)
-    //             .post('/notificaciones')
-    //             .send(incompleteNotificacion);
+        test('Debería devolver 400 si faltan campos requeridos', async () => {
+            // Envía un objeto con algunos campos requeridos faltantes
+            const incompleteNotificacion = {
+                id_usuario: 1,
+                mensaje_notificacion: 'Mensaje de prueba'
+            };
 
-    //         expect(res.statusCode).toEqual(400);
-    //         expect(res.body).toEqual({ error: 'Datos requeridos obligatoriamente' });
-    //         expect(pool.query).not.toHaveBeenCalled(); // No debería llamar a la base de datos
-    //     });
+            // Realiza la solicitud POST
+            const res = await request(app)
+                .post('/api/notificacion')
+                .send(incompleteNotificacion);
 
-    //     test('Debería manejar errores al crear una notificación', async () => {
-    //         const newNotificacion = { mensaje_notificacion: 'Mensaje con error', fecha_notificacion: '2024-07-03', estado_notificacion: 'fallido', destinatario: 'usuario4' };
-    //         pool.query.mockRejectedValueOnce(new Error('Error de inserción'));
+            // Verifica las aserciones
+            expect(res.statusCode).toEqual(400);
+            expect(res.body).toEqual({ error: 'Datos requeridos obligatoriamente' });
+        });
 
-    //         const res = await request(app)
-    //             .post('/notificaciones')
-    //             .send(newNotificacion);
+        test('Debería manejar errores al crear una notificación', async () => {
+            // Configura el mock para lanzar un error
+            pool.query.mockRejectedValueOnce(new Error('Database error'));
 
-    //         expect(res.statusCode).toEqual(500);
-    //         expect(res.body).toEqual({ error: 'Error al crear la notificacion' });
-    //     });
-    // });
+            // Realiza la solicitud POST
+            const res = await request(app)
+                .post('/api/notificacion')
+                .send(newNotificacion);
 
-    // // Test para la ruta PUT /notificaciones/:id (actualizar una notificación)
-    // describe('PUT /notificaciones/:id', () => {
-    //     test('Debería actualizar una notificación existente', async () => {
-    //         const updatedNotificacion = { mensaje_notificacion: 'Mensaje actualizado', fecha_notificacion: '2024-07-04', estado_notificacion: 'leido', destinatario: 'usuario1' };
-    //         // Simula que una fila fue afectada (actualizada)
-    //         pool.query.mockResolvedValueOnce([{ affectedRows: 1 }]);
+            // Verifica las aserciones
+            expect(res.statusCode).toEqual(500);
+            expect(res.body).toEqual({ error: 'Error al crear la notificacion' });
+        });
+    });
 
-    //         const res = await request(app)
-    //             .put('/notificaciones/1')
-    //             .send(updatedNotificacion);
+    // Prueba para actualizar una notificación existente
+    describe('PUT /api/notificacion/:id', () => {
+        const updatedNotificacion = {
+            id_usuario: 1,
+            id_pedido: 1,
+            mensaje_notificacion: 'Su pedido ha sido entregado.',
+            fecha_notificacion: '2023-07-23',
+            estado_notificacion: 'entregado',
+            destinatario: 'cliente@example.com'
+        };
 
-    //         expect(res.statusCode).toEqual(200);
-    //         expect(res.body).toEqual({ message: 'Notificacion actualizada correctamente' });
-    //         expect(pool.query).toHaveBeenCalledTimes(1);
-    //         expect(pool.query).toHaveBeenCalledWith(
-    //             'UPDATE notificacion SET mensaje_notificacion = ?, fecha_notificacion = ?, estado_notificacion = ?, destinatario = ? WHERE id_notificacion = ?',
-    //             [updatedNotificacion.mensaje_notificacion, updatedNotificacion.fecha_notificacion, updatedNotificacion.estado_notificacion, updatedNotificacion.destinatario, '1']
-    //         );
-    //     });
+        test('Debería actualizar una notificación existente', async () => {
+            // Configura el mock para simular una actualización exitosa
+            pool.query.mockResolvedValueOnce([{ affectedRows: 1 }]);
 
-    //     test('Debería devolver 404 si la notificación a actualizar no se encuentra', async () => {
-    //         pool.query.mockResolvedValueOnce([{ affectedRows: 0 }]); // Simula que ninguna fila fue afectada
+            // Realiza la solicitud PUT
+            const res = await request(app)
+                .put('/api/notificacion/1')
+                .send(updatedNotificacion);
 
-    //         const res = await request(app)
-    //             .put('/notificaciones/999')
-    //             .send({ mensaje_notificacion: 'Mensaje inexistente', fecha_notificacion: '2024-07-04', estado_notificacion: 'borrador', destinatario: 'usuarioX' });
+            // Verifica las aserciones
+            expect(res.statusCode).toEqual(200);
+            expect(res.body).toEqual({ message: 'Notificacion actualizada correctamente' });
+            expect(pool.query).toHaveBeenCalledWith(
+                'UPDATE notificacion SET id_usuario = ?, id_pedido = ?, mensaje_notificacion = ?, fecha_notificacion = ?, estado_notificacion = ?, destinatario = ? WHERE id_notificacion = ?',
+                [updatedNotificacion.id_usuario, updatedNotificacion.id_pedido, updatedNotificacion.mensaje_notificacion, updatedNotificacion.fecha_notificacion, updatedNotificacion.estado_notificacion, updatedNotificacion.destinatario, '1']
+            );
+        });
 
-    //         expect(res.statusCode).toEqual(404);
-    //         expect(res.body).toEqual({ error: 'Notificacion no encontrada ' });
-    //     });
+        test('Debería devolver 404 si la notificación a actualizar no se encuentra', async () => {
+            // Configura el mock para simular que la notificación no fue encontrada
+            pool.query.mockResolvedValueOnce([{ affectedRows: 0 }]);
 
-    //     test('Debería manejar errores al actualizar una notificación', async () => {
-    //         pool.query.mockRejectedValueOnce(new Error('Error de actualización'));
+            // Realiza la solicitud PUT
+            const res = await request(app)
+                .put('/api/notificacion/999')
+                .send(updatedNotificacion);
 
-    //         const res = await request(app)
-    //             .put('/notificaciones/1')
-    //             .send({ mensaje_notificacion: 'Mensaje con error', fecha_notificacion: '2024-07-04', estado_notificacion: 'error', destinatario: 'usuario1' });
+            // Verifica las aserciones
+            expect(res.statusCode).toEqual(404);
+            expect(res.body).toEqual({ error: 'Notificacion no encontrada '});
+        });
 
-    //         expect(res.statusCode).toEqual(500);
-    //         expect(res.body).toEqual({ error: 'Error al actualizar la notificacion' });
-    //     });
-    // });
+        test('Debería manejar errores al actualizar una notificación', async () => {
+            // Configura el mock para lanzar un error
+            pool.query.mockRejectedValueOnce(new Error('Database error'));
 
-    // Test para la ruta DELETE /notificaciones/:id (eliminar una notificación)
-    describe('DELETE /notificaciones/:id', () => {
-        test('Debería eliminar una notificación existente', async () => {
-            pool.query.mockResolvedValueOnce([{ affectedRows: 1 }]); // Simula que una fila fue afectada (eliminada)
+            // Realiza la solicitud PUT
+            const res = await request(app)
+                .put('/api/notificacion/1')
+                .send(updatedNotificacion);
 
-            const res = await request(app).delete('/notificaciones/1');
+            // Verifica las aserciones
+            expect(res.statusCode).toEqual(500);
+            expect(res.body).toEqual({ error: 'Error al actualizar la notificacion' });
+        });
+    });
 
+    // Prueba para eliminar una notificación
+    describe('DELETE /api/notificacion/:id', () => {
+        test('Debería eliminar una notificación', async () => {
+            // Configura el mock para simular una eliminación exitosa
+            pool.query.mockResolvedValueOnce([{ affectedRows: 1 }]);
+
+            // Realiza la solicitud DELETE
+            const res = await request(app).delete('/api/notificacion/1');
+
+            // Verifica las aserciones
             expect(res.statusCode).toEqual(200);
             expect(res.body).toEqual({ message: 'Notificacion eliminada corectamente' });
-            expect(pool.query).toHaveBeenCalledTimes(1);
             expect(pool.query).toHaveBeenCalledWith('DELETE FROM notificacion WHERE id_notificacion = ?', ['1']);
         });
 
         test('Debería devolver 404 si la notificación a eliminar no se encuentra', async () => {
-            pool.query.mockResolvedValueOnce([{ affectedRows: 0 }]); // Simula que ninguna fila fue afectada
+            // Configura el mock para simular que la notificación no fue encontrada
+            pool.query.mockResolvedValueOnce([{ affectedRows: 0 }]);
 
-            const res = await request(app).delete('/notificaciones/999');
+            // Realiza la solicitud DELETE
+            const res = await request(app).delete('/api/notificacion/999');
 
+            // Verifica las aserciones
             expect(res.statusCode).toEqual(404);
             expect(res.body).toEqual({ error: 'Notificacion no encontrada' });
         });
 
         test('Debería manejar errores al eliminar una notificación', async () => {
-            pool.query.mockRejectedValueOnce(new Error('Error de eliminación'));
+            // Configura el mock para lanzar un error
+            pool.query.mockRejectedValueOnce(new Error('Database error'));
 
-            const res = await request(app).delete('/notificaciones/1');
+            // Realiza la solicitud DELETE
+            const res = await request(app).delete('/api/notificacion/1');
 
+            // Verifica las aserciones
             expect(res.statusCode).toEqual(500);
             expect(res.body).toEqual({ error: 'Error al eliminar la notificacion' });
         });

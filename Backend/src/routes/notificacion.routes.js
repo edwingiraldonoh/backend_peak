@@ -36,7 +36,7 @@ router.post('/', async (req, res) => {
 
     try {
         const [result] = await pool.query(
-            'INSERT INTO notificacion (id_notificacion, id_usuario, id_pedido, mensaje_notificacion, fecha_notificacion, estado_notificacion, destinatario) VALUES (?, ?, ?, ?, ?, ?, ?cd )',
+            'INSERT INTO notificacion (id_notificacion, id_usuario, id_pedido, mensaje_notificacion, fecha_notificacion, estado_notificacion, destinatario) VALUES (?, ?, ?, ?, ?, ?, ?)',
             [id_notificacion, id_usuario, id_pedido, mensaje_notificacion, fecha_notificacion, estado_notificacion, destinatario]
         );
         res.status(201).json({ id: result.insertId, id_notificacion, id_usuario, id_pedido, mensaje_notificacion, fecha_notificacion, estado_notificacion, destinatario });

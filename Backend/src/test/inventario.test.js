@@ -1,208 +1,251 @@
+// Importa las librerías necesarias para las pruebas
 import request from 'supertest';
 import express from 'express';
-import { pool } from '../db.js'; 
-import inventarioRoutes from '../routes/inventario.routes.js';
+import { pool } from '../db.js'; // Asegúrate de que la ruta a tu archivo db.js sea correcta
 
-// Mockea el módulo 'db.js' para controlar el comportamiento de la base de datos
+// Importa el router que quieres probar
+import inventarioRoutes from '../routes/inventario.routes.js'; // Asegúrate de que la ruta sea correcta
+
+// Mockea el módulo 'db.js' para controlar las respuestas de la base de datos
 jest.mock('../db.js', () => ({
     pool: {
         query: jest.fn(), // Mockea la función query del pool
     },
 }));
 
-// Crea una aplicación Express para testear el router
+// Crea una aplicación Express para las pruebas
 const app = express();
-app.use(express.json()); // Necesario para parsear el body de las peticiones
-app.use('/inventario', inventarioRoutes); // Monta el router en una ruta base
+app.use(express.json()); // Habilita el parsing de JSON en el cuerpo de las solicitudes
+app.use('/api/inventario', inventarioRoutes); // Monta el router en una ruta base
 
-describe('inventario.routes.js', () => {
-    // Limpia los mocks antes de cada test
+describe('API de Inventario', () => {
+    // Limpia los mocks antes de cada prueba
     beforeEach(() => {
-        jest.clearAllMocks();
+        pool.query.mockClear();
     });
 
-    // Test para la ruta GET /inventario (obtener todos los inventarios)
-    describe('GET /inventario', () => {
-        test('Debería obtener todos los inventarios', async () => {
-            // Datos de ejemplo que el mock de pool.query devolverá
-            const mockInventarios = [
-                { id_inventario: 1, cantidad_disponible: 100, unidad_medida: 'unidades', fecha_actualizacion: '2024-01-01', alerta_stock: 10 },
-                { id_inventario: 2, cantidad_disponible: 50, unidad_medida: 'kg', fecha_actualizacion: '2024-01-02', alerta_stock: 5 },
-            ];
-            // Configura el mock para que devuelva los datos esperados
-            pool.query.mockResolvedValueOnce([mockInventarios]);
+    // Prueba para obtener todos los elementos del inventario
+    describe('GET /api/inventario', () => {
+        test('Debería obtener todos los elementos del inventario', async () => {
+            // Configura el mock para devolver datos de inventario
+            pool.query.mockResolvedValueOnce([[{ id_inventario: 1, id_producto: 101, cantidad_disponible: 50 }]]);
 
-            // Realiza la petición GET
-            const res = await request(app).get('/inventario');
+            // Realiza la solicitud GET
+            const res = await request(app).get('/api/inventario');
 
-            // Afirmaciones
-            expect(res.statusCode).toEqual(200); // Espera un status 200 OK
-            expect(res.body).toEqual(mockInventarios); // Espera que el cuerpo de la respuesta sea igual a los datos mockeados
-            expect(pool.query).toHaveBeenCalledTimes(1); // Espera que pool.query haya sido llamado una vez
-            expect(pool.query).toHaveBeenCalledWith('SELECT * FROM inventario'); // Espera que la consulta sea la correcta
-        });
-
-        test('Debería manejar errores al obtener todos los inventarios', async () => {
-            // Configura el mock para que rechace la promesa con un error
-            pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
-
-            // Realiza la petición GET
-            const res = await request(app).get('/inventario');
-
-            // Afirmaciones
-            expect(res.statusCode).toEqual(500); // Espera un status 500 Internal Server Error
-            expect(res.body).toEqual({ error: 'al obtener los datos del inventario' }); // Espera el mensaje de error específico
-        });
-    });
-
-    // Test para la ruta GET /inventario/:id (obtener inventario por ID)
-    describe('GET /inventario/:id', () => {
-        test('Debería obtener un inventario por ID', async () => {
-            const mockInventario = { id_inventario: 1, cantidad_disponible: 100, unidad_medida: 'unidades', fecha_actualizacion: '2024-01-01', alerta_stock: 10 };
-            pool.query.mockResolvedValueOnce([[mockInventario]]); // Nota el doble array para simular rows[0]
-
-            const res = await request(app).get('/inventario/1');
-
+            // Verifica las aserciones
             expect(res.statusCode).toEqual(200);
-            expect(res.body).toEqual(mockInventario);
-            expect(pool.query).toHaveBeenCalledTimes(1);
+            expect(res.body).toEqual([{ id_inventario: 1, id_producto: 101, cantidad_disponible: 50 }]);
+            expect(pool.query).toHaveBeenCalledWith('SELECT * FROM inventario');
+        });
+
+        test('Debería manejar errores al obtener elementos del inventario', async () => {
+            // Configura el mock para lanzar un error
+            pool.query.mockRejectedValueOnce(new Error('Database error'));
+
+            // Realiza la solicitud GET
+            const res = await request(app).get('/api/inventario');
+
+            // Verifica las aserciones
+            expect(res.statusCode).toEqual(500);
+            expect(res.body).toEqual({ error: 'al obtener los datos del inventario' });
+        });
+    });
+
+    // Prueba para obtener un elemento del inventario por ID
+    describe('GET /api/inventario/:id', () => {
+        test('Debería obtener un elemento del inventario por ID', async () => {
+            // Configura el mock para devolver un elemento de inventario específico
+            pool.query.mockResolvedValueOnce([[{ id_inventario: 1, id_producto: 101, cantidad_disponible: 50 }]]);
+
+            // Realiza la solicitud GET
+            const res = await request(app).get('/api/inventario/1');
+
+            // Verifica las aserciones
+            expect(res.statusCode).toEqual(200);
+            expect(res.body).toEqual({ id_inventario: 1, id_producto: 101, cantidad_disponible: 50 });
             expect(pool.query).toHaveBeenCalledWith('SELECT * FROM inventario WHERE id_inventario = ?', ['1']);
         });
 
-        test('Debería devolver 404 si el inventario no se encuentra', async () => {
-            pool.query.mockResolvedValueOnce([[]]); // Simula que no se encontraron filas
+        test('Debería devolver 404 si el elemento del inventario no se encuentra', async () => {
+            // Configura el mock para devolver un array vacío (elemento no encontrado)
+            pool.query.mockResolvedValueOnce([[]]);
 
-            const res = await request(app).get('/inventario/999');
+            // Realiza la solicitud GET
+            const res = await request(app).get('/api/inventario/999');
 
+            // Verifica las aserciones
             expect(res.statusCode).toEqual(404);
             expect(res.body).toEqual({ error: 'inventario no encontrada' });
         });
 
-        test('Debería manejar errores al obtener el inventario por ID', async () => {
-            pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
+        test('Debería manejar errores al obtener un elemento del inventario por ID', async () => {
+            // Configura el mock para lanzar un error
+            pool.query.mockRejectedValueOnce(new Error('Database error'));
 
-            const res = await request(app).get('/inventario/1');
+            // Realiza la solicitud GET
+            const res = await request(app).get('/api/inventario/1');
 
+            // Verifica las aserciones
             expect(res.statusCode).toEqual(500);
             expect(res.body).toEqual({ error: 'Error al obtener el inventario' });
         });
     });
 
-    // // Test para la ruta POST /inventario (crear un nuevo inventario)
-    // describe('POST /inventario', () => {
-    //     test('Debería crear un nuevo inventario', async () => {
-    //         const newInventario = { cantidad_disponible: 75, unidad_medida: 'litros', fecha_actualizacion: '2024-07-03', alerta_stock: 8 };
-    //         // Simula el resultado de una inserción en la base de datos
-    //         pool.query.mockResolvedValueOnce([{ insertId: 3 }]);
+    // Prueba para crear un nuevo elemento de inventario
+    describe('POST /api/inventario', () => {
+        const newInventario = {
+            id_inventario: 10,
+            id_producto: 201,
+            cantidad_disponible: 100,
+            unidad_medida: 'unidades',
+            fecha_actualizacion: '2023-07-22',
+            alerta_stock: 10
+        };
 
-    //         const res = await request(app)
-    //             .post('/inventario')
-    //             .send(newInventario);
+        test('Debería crear un nuevo elemento de inventario', async () => {
+            // Configura el mock para simular una inserción exitosa
+            pool.query.mockResolvedValueOnce([{ insertId: 10 }]);
 
-    //         expect(res.statusCode).toEqual(201); // Espera un status 201 Created
-    //         expect(res.body).toEqual({ id: 3, ...newInventario }); // Espera el ID insertado y los datos del inventario
-    //         expect(pool.query).toHaveBeenCalledTimes(1);
-    //         expect(pool.query).toHaveBeenCalledWith(
-    //             'INSERT INTO venta (cantidad_disponible, unidad_medida, fecha_actualizacion, alerta_stock) VALUES (?, ?, ?)',
-    //             [newInventario.cantidad_disponible, newInventario.unidad_medida, newInventario.fecha_actualizacion, newInventario.alerta_stock]
-    //         );
-    //     });
+            // Realiza la solicitud POST
+            const res = await request(app)
+                .post('/api/inventario')
+                .send(newInventario);
 
-    //     test('Debería devolver 400 si faltan campos requeridos', async () => {
-    //         const incompleteInventario = { cantidad_disponible: 10 };
+            // Verifica las aserciones
+            expect(res.statusCode).toEqual(201);
+            expect(res.body).toEqual({ id: 10, ...newInventario });
+            expect(pool.query).toHaveBeenCalledWith(
+                'INSERT INTO inventario (id_inventario, id_producto, cantidad_disponible, unidad_medida, fecha_actualizacion, alerta_stock) VALUES (?, ?, ?, ?, ?, ?)',
+                [newInventario.id_inventario, newInventario.id_producto, newInventario.cantidad_disponible, newInventario.unidad_medida, newInventario.fecha_actualizacion, newInventario.alerta_stock]
+            );
+        });
 
-    //         const res = await request(app)
-    //             .post('/inventario')
-    //             .send(incompleteInventario);
+        test('Debería devolver 400 si faltan campos requeridos', async () => {
+            // Envía un objeto con algunos campos requeridos faltantes
+            const incompleteInventario = {
+                id_inventario: 10,
+                id_producto: 201,
+                cantidad_disponible: 100
+            };
 
-    //         expect(res.statusCode).toEqual(400);
-    //         expect(res.body).toEqual({ error: 'Datos requeridos obligaroriamente' });
-    //         expect(pool.query).not.toHaveBeenCalled(); // No debería llamar a la base de datos
-    //     });
+            // Realiza la solicitud POST
+            const res = await request(app)
+                .post('/api/inventario')
+                .send(incompleteInventario);
 
-    //     test('Debería manejar errores al crear un inventario', async () => {
-    //         const newInventario = { cantidad_disponible: 75, unidad_medida: 'litros', fecha_actualizacion: '2024-07-03', alerta_stock: 8 };
-    //         pool.query.mockRejectedValueOnce(new Error('Error de inserción'));
+            // Verifica las aserciones
+            expect(res.statusCode).toEqual(400);
+            expect(res.body).toEqual({ error: 'Datos requeridos obligaroriamente' });
+        });
 
-    //         const res = await request(app)
-    //             .post('/inventario')
-    //             .send(newInventario);
+        test('Debería manejar errores al crear un elemento de inventario', async () => {
+            // Configura el mock para lanzar un error
+            pool.query.mockRejectedValueOnce(new Error('Database error'));
 
-    //         expect(res.statusCode).toEqual(500);
-    //         expect(res.body).toEqual({ error: 'Error al crear el inventario' });
-    //     });
-    // });
+            // Realiza la solicitud POST
+            const res = await request(app)
+                .post('/api/inventario')
+                .send(newInventario);
 
-    // // Test para la ruta PUT /inventario/:id (actualizar un inventario)
-    // describe('PUT /inventario/:id', () => {
-    //     test('Debería actualizar un inventario existente', async () => {
-    //         const updatedInventario = { cantidad_disponible: 120, unidad_medida: 'unidades', fecha_actualizacion: '2024-07-04', alerta_stock: 15 };
-    //         // Simula que una fila fue afectada (actualizada)
-    //         pool.query.mockResolvedValueOnce([{ affectedRows: 1 }]);
+            // Verifica las aserciones
+            expect(res.statusCode).toEqual(500);
+            expect(res.body).toEqual({ error: 'Error al crear el inventario' });
+        });
+    });
 
-    //         const res = await request(app)
-    //             .put('/inventario/1')
-    //             .send(updatedInventario);
+    // Prueba para actualizar un elemento de inventario existente
+    describe('PUT /api/inventario/:id', () => {
+        const updatedInventario = {
+            id_producto: 202,
+            cantidad_disponible: 120,
+            unidad_medida: 'cajas',
+            fecha_actualizacion: '2023-07-23',
+            alerta_stock: 15
+        };
 
-    //         expect(res.statusCode).toEqual(200);
-    //         expect(res.body).toEqual({ message: 'Inventario actualizado correctamente' });
-    //         expect(pool.query).toHaveBeenCalledTimes(1);
-    //         expect(pool.query).toHaveBeenCalledWith(
-    //             'UPDATE inventario SET cantidad_disponible = ?, unidad_medida = ?, fecha_actualizacion = ?, alerta_stock = ? WHERE id_inventario = ?',
-    //             [updatedInventario.cantidad_disponible, updatedInventario.unidad_medida, updatedInventario.fecha_actualizacion, updatedInventario.alerta_stock, '1']
-    //         );
-    //     });
+        test('Debería actualizar un elemento de inventario existente', async () => {
+            // Configura el mock para simular una actualización exitosa
+            pool.query.mockResolvedValueOnce([{ affectedRows: 1 }]);
 
-    //     test('Debería devolver 404 si el inventario a actualizar no se encuentra', async () => {
-    //         pool.query.mockResolvedValueOnce([{ affectedRows: 0 }]); // Simula que ninguna fila fue afectada
+            // Realiza la solicitud PUT
+            const res = await request(app)
+                .put('/api/inventario/1')
+                .send(updatedInventario);
 
-    //         const res = await request(app)
-    //             .put('/inventario/999')
-    //             .send({ cantidad_disponible: 10, unidad_medida: 'unidades', fecha_actualizacion: '2024-07-04', alerta_stock: 1 });
+            // Verifica las aserciones
+            expect(res.statusCode).toEqual(200);
+            expect(res.body).toEqual({ message: 'Inventario actualizado correctamente' });
+            expect(pool.query).toHaveBeenCalledWith(
+                'UPDATE inventario SET id_producto = ?, cantidad_disponible = ?, unidad_medida = ?, fecha_actualizacion = ?, alerta_stock = ? WHERE id_inventario = ?',
+                [updatedInventario.id_producto, updatedInventario.cantidad_disponible, updatedInventario.unidad_medida, updatedInventario.fecha_actualizacion, updatedInventario.alerta_stock, '1']
+            );
+        });
 
-    //         expect(res.statusCode).toEqual(404);
-    //         expect(res.body).toEqual({ error: 'Inventario no encontrado ' });
-    //     });
+        test('Debería devolver 404 si el elemento del inventario a actualizar no se encuentra', async () => {
+            // Configura el mock para simular que el elemento no fue encontrado
+            pool.query.mockResolvedValueOnce([{ affectedRows: 0 }]);
 
-    //     test('Debería manejar errores al actualizar un inventario', async () => {
-    //         pool.query.mockRejectedValueOnce(new Error('Error de actualización'));
+            // Realiza la solicitud PUT
+            const res = await request(app)
+                .put('/api/inventario/999')
+                .send(updatedInventario);
 
-    //         const res = await request(app)
-    //             .put('/inventario/1')
-    //             .send({ cantidad_disponible: 10, unidad_medida: 'unidades', fecha_actualizacion: '2024-07-04', alerta_stock: 1 });
+            // Verifica las aserciones
+            expect(res.statusCode).toEqual(404);
+            expect(res.body).toEqual({ error: 'Inventario no encontrado '});
+        });
 
-    //         expect(res.statusCode).toEqual(500);
-    //         expect(res.body).toEqual({ error: 'Error al actualizar el inventario' });
-    //     });
-    // });
+        test('Debería manejar errores al actualizar un elemento de inventario', async () => {
+            // Configura el mock para lanzar un error
+            pool.query.mockRejectedValueOnce(new Error('Database error'));
 
-    // Test para la ruta DELETE /inventario/:id (eliminar un inventario)
-    describe('DELETE /inventario/:id', () => {
-        test('Debería eliminar un inventario existente', async () => {
-            pool.query.mockResolvedValueOnce([{ affectedRows: 1 }]); // Simula que una fila fue afectada (eliminada)
+            // Realiza la solicitud PUT
+            const res = await request(app)
+                .put('/api/inventario/1')
+                .send(updatedInventario);
 
-            const res = await request(app).delete('/inventario/1');
+            // Verifica las aserciones
+            expect(res.statusCode).toEqual(500);
+            expect(res.body).toEqual({ error: 'Error al actualizar el inventario' });
+        });
+    });
 
+    // Prueba para eliminar un elemento de inventario
+    describe('DELETE /api/inventario/:id', () => {
+        test('Debería eliminar un elemento de inventario', async () => {
+            // Configura el mock para simular una eliminación exitosa
+            pool.query.mockResolvedValueOnce([{ affectedRows: 1 }]);
+
+            // Realiza la solicitud DELETE
+            const res = await request(app).delete('/api/inventario/1');
+
+            // Verifica las aserciones
             expect(res.statusCode).toEqual(200);
             expect(res.body).toEqual({ message: 'Inventario eliminado corectamente' });
-            expect(pool.query).toHaveBeenCalledTimes(1);
             expect(pool.query).toHaveBeenCalledWith('DELETE FROM inventario WHERE id_inventario = ?', ['1']);
         });
 
-        test('Debería devolver 404 si el inventario a eliminar no se encuentra', async () => {
-            pool.query.mockResolvedValueOnce([{ affectedRows: 0 }]); // Simula que ninguna fila fue afectada
+        test('Debería devolver 404 si el elemento del inventario a eliminar no se encuentra', async () => {
+            // Configura el mock para simular que el elemento no fue encontrado
+            pool.query.mockResolvedValueOnce([{ affectedRows: 0 }]);
 
-            const res = await request(app).delete('/inventario/999');
+            // Realiza la solicitud DELETE
+            const res = await request(app).delete('/api/inventario/999');
 
+            // Verifica las aserciones
             expect(res.statusCode).toEqual(404);
             expect(res.body).toEqual({ error: 'Inventario no encontrado' });
         });
 
-        test('Debería manejar errores al eliminar un inventario', async () => {
-            pool.query.mockRejectedValueOnce(new Error('Error de eliminación'));
+        test('Debería manejar errores al eliminar un elemento de inventario', async () => {
+            // Configura el mock para lanzar un error
+            pool.query.mockRejectedValueOnce(new Error('Database error'));
 
-            const res = await request(app).delete('/inventario/1');
+            // Realiza la solicitud DELETE
+            const res = await request(app).delete('/api/inventario/1');
 
+            // Verifica las aserciones
             expect(res.statusCode).toEqual(500);
             expect(res.body).toEqual({ error: 'Error al eliminar el inventario' });
         });

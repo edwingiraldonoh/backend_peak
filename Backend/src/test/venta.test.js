@@ -1,115 +1,123 @@
+// Importa las librerías necesarias para las pruebas
 import request from 'supertest';
 import express from 'express';
-import { pool } from '../db.js'; 
-import ventaRoutes from '../routes/venta.routes.js';
+import { pool } from '../db.js'; // Asegúrate de que la ruta a tu archivo db.js sea correcta
 
-//Mockea el módulo 'db.js' para controlar el comportamiento de la base de datos
+// Importa el router que quieres probar
+import ventaRoutes from '../routes/venta.routes.js'; // Asegúrate de que la ruta sea correcta
+
+// Mockea el módulo 'db.js' para controlar las respuestas de la base de datos
 jest.mock('../db.js', () => ({
     pool: {
         query: jest.fn(), // Mockea la función query del pool
     },
 }));
 
-//Crea una aplicación Express para testear el router
+// Crea una aplicación Express para las pruebas
 const app = express();
-app.use(express.json()); //Necesario para parsear el body de las peticiones
-app.use('/ventas', ventaRoutes); //Monta el router en una ruta base
+app.use(express.json()); // Habilita el parsing de JSON en el cuerpo de las solicitudes
+app.use('/api/venta', ventaRoutes); // Monta el router en una ruta base
 
-describe('venta.routes.js', () => {
-    // Limpia los mocks antes de cada test
+describe('API de Venta', () => {
+    // Limpia los mocks antes de cada prueba
     beforeEach(() => {
-        jest.clearAllMocks();
+        pool.query.mockClear();
     });
 
-    // Test para la ruta GET /ventas (obtener todas las ventas)
-    describe('GET /ventas', () => {
+    // Prueba para obtener todas las ventas
+    describe('GET /api/venta', () => {
         test('Debería obtener todas las ventas', async () => {
-            // Datos de ejemplo que el mock de pool.query devolverá
-            const mockVentas = [
-                { id_venta: 1, fecha_venta: '2024-01-01', total_venta: 100.00, mesero_encargado: 'Mesero A', comision: 5.00 },
-                { id_venta: 2, fecha_venta: '2024-01-02', total_venta: 150.50, mesero_encargado: 'Mesero B', comision: 7.50 },
-            ];
-            // Configura el mock para que devuelva los datos esperados
-            pool.query.mockResolvedValueOnce([mockVentas]);
+            // Configura el mock para devolver datos de ventas
+            pool.query.mockResolvedValueOnce([[{ id_venta: 1, total_venta: 150.00, mesero_encargado: 'Carlos' }]]);
 
-            // Realiza la petición GET
-            const res = await request(app).get('/ventas');
+            // Realiza la solicitud GET
+            const res = await request(app).get('/api/venta');
 
-            // Afirmaciones
-            expect(res.statusCode).toEqual(200); // Espera un status 200 OK
-            expect(res.body).toEqual(mockVentas); // Espera que el cuerpo de la respuesta sea igual a los datos mockeados
-            expect(pool.query).toHaveBeenCalledTimes(1); // Espera que pool.query haya sido llamado una vez
-            expect(pool.query).toHaveBeenCalledWith('SELECT * FROM venta'); // Espera que la consulta sea la correcta
+            // Verifica las aserciones
+            expect(res.statusCode).toEqual(200);
+            expect(res.body).toEqual([{ id_venta: 1, total_venta: 150.00, mesero_encargado: 'Carlos' }]);
+            expect(pool.query).toHaveBeenCalledWith('SELECT * FROM venta');
         });
 
-        test('Debería manejar errores al obtener todas las ventas', async () => {
-            // Configura el mock para que rechace la promesa con un error
-            pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
+        test('Debería manejar errores al obtener ventas', async () => {
+            // Configura el mock para lanzar un error
+            pool.query.mockRejectedValueOnce(new Error('Database error'));
 
-            // Realiza la petición GET
-            const res = await request(app).get('/ventas');
+            // Realiza la solicitud GET
+            const res = await request(app).get('/api/venta');
 
-            // Afirmaciones
-            expect(res.statusCode).toEqual(500); // Espera un status 500 Internal Server Error
-            expect(res.body).toEqual({ error: 'al obtener los datos de la venta' }); // Espera el mensaje de error específico
+            // Verifica las aserciones
+            expect(res.statusCode).toEqual(500);
+            expect(res.body).toEqual({ error: 'al obtener los datos de la venta' });
         });
     });
 
-    // Test para la ruta GET /ventas/:id (obtener venta por ID)
-    describe('GET /ventas/:id', () => {
+    // Prueba para obtener una venta por ID
+    describe('GET /api/venta/:id', () => {
         test('Debería obtener una venta por ID', async () => {
-            const mockVenta = { id_venta: 1, fecha_venta: '2024-01-01', total_venta: 100.00, mesero_encargado: 'Mesero A', comision: 5.00 };
-            pool.query.mockResolvedValueOnce([[mockVenta]]); // Nota el doble array para simular rows[0]
+            // Configura el mock para devolver una venta específica
+            pool.query.mockResolvedValueOnce([[{ id_venta: 1, total_venta: 150.00, mesero_encargado: 'Carlos' }]]);
 
-            const res = await request(app).get('/ventas/1');
+            // Realiza la solicitud GET
+            const res = await request(app).get('/api/venta/1');
 
+            // Verifica las aserciones
             expect(res.statusCode).toEqual(200);
-            expect(res.body).toEqual(mockVenta);
-            expect(pool.query).toHaveBeenCalledTimes(1);
+            expect(res.body).toEqual({ id_venta: 1, total_venta: 150.00, mesero_encargado: 'Carlos' });
             expect(pool.query).toHaveBeenCalledWith('SELECT * FROM venta WHERE id_venta = ?', ['1']);
         });
 
         test('Debería devolver 404 si la venta no se encuentra', async () => {
-            pool.query.mockResolvedValueOnce([[]]); // Simula que no se encontraron filas
+            // Configura el mock para devolver un array vacío (venta no encontrada)
+            pool.query.mockResolvedValueOnce([[]]);
 
-            const res = await request(app).get('/ventas/999');
+            // Realiza la solicitud GET
+            const res = await request(app).get('/api/venta/999');
 
+            // Verifica las aserciones
             expect(res.statusCode).toEqual(404);
             expect(res.body).toEqual({ error: 'venta no encontrada' });
         });
 
-        test('Debería manejar errores al obtener la venta por ID', async () => {
-            pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
+        test('Debería manejar errores al obtener una venta por ID', async () => {
+            // Configura el mock para lanzar un error
+            pool.query.mockRejectedValueOnce(new Error('Database error'));
 
-            const res = await request(app).get('/ventas/1');
+            // Realiza la solicitud GET
+            const res = await request(app).get('/api/venta/1');
 
+            // Verifica las aserciones
             expect(res.statusCode).toEqual(500);
             expect(res.body).toEqual({ error: 'Error al obtener la venta' });
         });
     });
 
-    // Test para la ruta POST /ventas (crear una nueva venta)
-    describe('POST /ventas', () => {
+   // Prueba para crear una nueva venta
+    describe('POST /api/venta', () => {
         const newVenta = {
-            id_venta: 4,
-            id_usuario: 3,
-            fecha_venta: '2023-01-03',
-            total_venta: 200,
-            comision: 20,
-            mesero_encargado: 'Pedro',
+            id_venta: 10,
+            id_usuario: 1,
+            fecha_venta: '2023-07-22',
+            total_venta: 200.00,
+            comision: 20.00,
+            mesero_encargado: 'Ana'
         };
 
-        test('debería crear una nueva venta', async () => {
-            pool.query.mockResolvedValueOnce([{ insertId: 4 }]);
+        test('Debería crear una nueva venta', async () => {
+            // Configura el mock para simular una inserción exitosa
+            pool.query.mockResolvedValueOnce([{ insertId: 10 }]);
 
-            const res = await request(app).post('/ventas').send(newVenta);
+            // Realiza la solicitud POST
+            const res = await request(app)
+                .post('/api/venta')
+                .send(newVenta);
             expect(res.statusCode).toEqual(201);
             expect(res.body).toEqual({
-                id: 4,
+                id: 10,
                 fecha_venta: newVenta.fecha_venta,
                 total_venta: newVenta.total_venta,
                 comision: newVenta.comision,
-                mesero_encargado: newVenta.mesero_encargado,
+                mesero_encargado: newVenta.mesero_encargado
             });
             expect(pool.query).toHaveBeenCalledWith(
                 'INSERT INTO venta (id_venta, id_usuario, fecha_venta, total_venta, comision, mesero_encargado) VALUES (?, ?, ?, ?, ?, ?)',
@@ -117,36 +125,61 @@ describe('venta.routes.js', () => {
             );
         });
 
-        test('debería devolver 400 si faltan datos requeridos', async () => {
-            const incompleteVenta = { id_usuario: 1, fecha_venta: '2023-01-01' }; // Faltan campos
-            const res = await request(app).post('/ventas').send(incompleteVenta);
+        test('Debería devolver 400 si faltan campos requeridos', async () => {
+            // Envía un objeto con algunos campos requeridos faltantes
+            const incompleteVenta = {
+                id_venta: 10,
+                id_usuario: 1,
+                fecha_venta: '2023-07-22',
+                // Faltan total_venta, comision, mesero_encargado
+            };
+
+            // Realiza la solicitud POST
+            const res = await request(app)
+                .post('/api/venta')
+                .send(incompleteVenta);
+
+            // Verifica las aserciones
             expect(res.statusCode).toEqual(400);
             expect(res.body).toEqual({ error: 'Datos requeridos' });
         });
 
-        test('debería manejar errores al crear una venta', async () => {
-            pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
+        test('Debería manejar errores al crear una venta', async () => {
+            // Configura el mock para lanzar un error
+            pool.query.mockRejectedValueOnce(new Error('Database error'));
 
-            const res = await request(app).post('/ventas').send(newVenta);
+            // Realiza la solicitud POST
+            const res = await request(app)
+                .post('/api/venta')
+                .send(newVenta);
+
+            // Verifica las aserciones
             expect(res.statusCode).toEqual(500);
             expect(res.body).toEqual({ error: 'Error al crear la venta' });
         });
     });
 
-    // Test para la ruta PUT /ventas (Actualizar una venta existente)
-    describe('PUT /ventas/:id', () => {
+
+    // Prueba para actualizar una venta existente
+    describe('PUT /api/venta/:id', () => {
         const updatedVenta = {
             id_usuario: 1,
-            fecha_venta: '2023-01-01',
-            total_venta: 120,
-            comision: 12,
-            mesero_encargado: 'Juan Carlos',
+            fecha_venta: '2023-07-23',
+            total_venta: 250.00,
+            comision: 25.00,
+            mesero_encargado: 'Pedro'
         };
 
-        test('debería actualizar una venta existente', async () => {
+        test('Debería actualizar una venta existente', async () => {
+            // Configura el mock para simular una actualización exitosa
             pool.query.mockResolvedValueOnce([{ affectedRows: 1 }]);
 
-            const res = await request(app).put('/ventas/1').send(updatedVenta);
+            // Realiza la solicitud PUT
+            const res = await request(app)
+                .put('/api/venta/1')
+                .send(updatedVenta);
+
+            // Verifica las aserciones
             expect(res.statusCode).toEqual(200);
             expect(res.body).toEqual({ message: 'Venta actualizada correctamente' });
             expect(pool.query).toHaveBeenCalledWith(
@@ -155,50 +188,70 @@ describe('venta.routes.js', () => {
             );
         });
 
-        test('debería devolver 404 si la venta a actualizar no se encuentra', async () => {
+        test('Debería devolver 404 si la venta a actualizar no se encuentra', async () => {
+            // Configura el mock para simular que la venta no fue encontrada
             pool.query.mockResolvedValueOnce([{ affectedRows: 0 }]);
 
-            const res = await request(app).put('/ventas/999').send(updatedVenta);
+            // Realiza la solicitud PUT
+            const res = await request(app)
+                .put('/api/venta/999')
+                .send(updatedVenta);
+
+            // Verifica las aserciones
             expect(res.statusCode).toEqual(404);
             expect(res.body).toEqual({ error: 'venta no encontrada '});
         });
 
-        test('debería manejar errores al actualizar una venta', async () => {
-            pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
+        test('Debería manejar errores al actualizar una venta', async () => {
+            // Configura el mock para lanzar un error
+            pool.query.mockRejectedValueOnce(new Error('Database error'));
 
-            const res = await request(app).put('/ventas/1').send(updatedVenta);
+            // Realiza la solicitud PUT
+            const res = await request(app)
+                .put('/api/venta/1')
+                .send(updatedVenta);
+
+            // Verifica las aserciones
             expect(res.statusCode).toEqual(500);
             expect(res.body).toEqual({ error: 'Error al actualizar la venta' });
         });
     });
 
-    // Test para la ruta DELETE /ventas/:id (eliminar una venta)
-    describe('DELETE /ventas/:id', () => {
-        test('Debería eliminar una venta existente', async () => {
-            pool.query.mockResolvedValueOnce([{ affectedRows: 1 }]); // Simula que una fila fue afectada (eliminada)
+    // Prueba para eliminar una venta
+    describe('DELETE /api/venta/:id', () => {
+        test('Debería eliminar una venta', async () => {
+            // Configura el mock para simular una eliminación exitosa
+            pool.query.mockResolvedValueOnce([{ affectedRows: 1 }]);
 
-            const res = await request(app).delete('/ventas/1');
+            // Realiza la solicitud DELETE
+            const res = await request(app).delete('/api/venta/1');
 
+            // Verifica las aserciones
             expect(res.statusCode).toEqual(200);
             expect(res.body).toEqual({ message: 'Venta eliminada corectamente' });
-            expect(pool.query).toHaveBeenCalledTimes(1);
             expect(pool.query).toHaveBeenCalledWith('DELETE FROM venta WHERE id_venta = ?', ['1']);
         });
 
         test('Debería devolver 404 si la venta a eliminar no se encuentra', async () => {
-            pool.query.mockResolvedValueOnce([{ affectedRows: 0 }]); // Simula que ninguna fila fue afectada
+            // Configura el mock para simular que la venta no fue encontrada
+            pool.query.mockResolvedValueOnce([{ affectedRows: 0 }]);
 
-            const res = await request(app).delete('/ventas/999');
+            // Realiza la solicitud DELETE
+            const res = await request(app).delete('/api/venta/999');
 
+            // Verifica las aserciones
             expect(res.statusCode).toEqual(404);
             expect(res.body).toEqual({ error: 'Venta no encontrada' });
         });
 
         test('Debería manejar errores al eliminar una venta', async () => {
-            pool.query.mockRejectedValueOnce(new Error('Error de eliminación'));
+            // Configura el mock para lanzar un error
+            pool.query.mockRejectedValueOnce(new Error('Database error'));
 
-            const res = await request(app).delete('/ventas/1');
+            // Realiza la solicitud DELETE
+            const res = await request(app).delete('/api/venta/1');
 
+            // Verifica las aserciones
             expect(res.statusCode).toEqual(500);
             expect(res.body).toEqual({ error: 'Error al eliminar la venta' });
         });

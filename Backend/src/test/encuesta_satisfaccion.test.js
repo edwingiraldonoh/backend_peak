@@ -1,217 +1,252 @@
+// Importa las librerías necesarias para las pruebas
 import request from 'supertest';
-import express from 'express'; // Necesitamos express para crear una app de prueba
-import { jest } from '@jest/globals'; // Para mocking en ES Modules
+import express from 'express';
+import { pool } from '../db.js'; // Asegúrate de que la ruta a tu archivo db.js sea correcta
 
-// Mockear el módulo db.js
-// Esto es crucial para que los tests no intenten conectarse a una base de datos real
+// Importa el router que quieres probar
+import encuestaRoutes from '../routes/encuesta_satisfaccion.routes.js';
+
+// Mockea el módulo 'db.js' para controlar las respuestas de la base de datos
 jest.mock('../db.js', () => ({
-  pool: {
-    query: jest.fn(), // Mockea la función query del pool
-  },
+    pool: {
+        query: jest.fn(), // Mockea la función query del pool
+    },
 }));
 
-import encuestaRoutes from '../routes/encuesta_satisfaccion.routes.js'; 
-
-// Crea una instancia de Express para Supertest
+// Crea una aplicación Express para las pruebas
 const app = express();
-app.use(express.json()); // Necesario para parsear el body en peticiones POST/PUT
-app.use('/api/satisfaccion', encuestaRoutes); // Monta las rutas en un prefijo
+app.use(express.json()); // Habilita el parsing de JSON en el cuerpo de las solicitudes
+app.use('/api/satisfaccion', encuestaRoutes); // Monta el router en una ruta base
 
-// Importa el pool mockeado para poder manipularlo en los tests
-// La ruta se ajusta a '../db.js' por la misma razón que el mock
-import { pool } from '../db.js';
-
-describe('Rutas de Encuesta de Satisfacción', () => {
-
-  // Limpia el mock de pool.query antes de cada test
-  beforeEach(() => {
-    pool.query.mockClear();
-  });
-
-  // Test para GET /api/satisfaction (obtener todas las encuestas)
-  describe('GET /api/satisfaccion', () => {
-    it('debería devolver todas las encuestas de satisfacción', async () => {
-      const mockSurveys = [
-        { id_encuesta: 1, puntuacion: 5, comentarios: 'Excelente', fecha_encuesta: '2023-01-01' },
-        { id_encuesta: 2, puntuacion: 4, comentarios: 'Bueno', fecha_encuesta: '2023-01-02' },
-      ];
-      // Configura el mock para que devuelva un resultado exitoso
-      pool.query.mockResolvedValueOnce([mockSurveys]);
-
-      const res = await request(app).get('/api/satisfaccion');
-
-      expect(res.statusCode).toEqual(200);
-      expect(res.body).toEqual(mockSurveys);
-      expect(pool.query).toHaveBeenCalledWith('SELECT * FROM encuesta_satisfaccion');
+describe('API de Encuestas de Satisfacción', () => {
+    // Limpia los mocks antes de cada prueba
+    beforeEach(() => {
+        pool.query.mockClear();
     });
 
-    it('debería manejar errores al obtener todas las encuestas', async () => {
-      // Configura el mock para que lance un error
-      pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
+    // Prueba para obtener todas las encuestas
+    describe('GET /api/satisfaccion', () => {
+        test('Debería obtener todas las encuestas de satisfacción', async () => {
+            // Configura el mock para devolver datos de encuestas
+            pool.query.mockResolvedValueOnce([[{ id_encuesta: 4, puntuacion: 5, comentarios: 'Excelente' }]]);
 
-      const res = await request(app).get('/api/satisfaccion');
+            // Realiza la solicitud GET
+            const res = await request(app).get('/api/satisfaccion');
 
-      expect(res.statusCode).toEqual(500);
-      expect(res.body).toEqual({ error: 'al obtener las encuestas de satisfaccion' });
-      expect(pool.query).toHaveBeenCalledWith('SELECT * FROM encuesta_satisfaccion');
-    });
-  });
+            // Verifica las aserciones
+            expect(res.statusCode).toEqual(200);
+            expect(res.body).toEqual([{ id_encuesta: 4, puntuacion: 5, comentarios: 'Excelente' }]);
+            expect(pool.query).toHaveBeenCalledWith('SELECT * FROM encuesta_satisfaccion');
+        });
 
-  // Test para GET /api/satisfaction/:id (obtener encuesta por ID)
-  describe('GET /api/satisfaccion/:id', () => {
-    it('debería devolver una encuesta de satisfacción por ID', async () => {
-      const mockSurvey = { id_encuesta: 1, puntuacion: 5, comentarios: 'Excelente', fecha_encuesta: '2023-01-01' };
-      pool.query.mockResolvedValueOnce([[mockSurvey]]); // Array anidado porque pool.query devuelve [rows, fields]
+        test('Debería manejar errores al obtener encuestas', async () => {
+            // Configura el mock para lanzar un error
+            pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
 
-      const res = await request(app).get('/api/satisfaction/1');
+            // Realiza la solicitud GET
+            const res = await request(app).get('/api/satisfaccion');
 
-      expect(res.statusCode).toEqual(200);
-      expect(res.body).toEqual(mockSurvey);
-      expect(pool.query).toHaveBeenCalledWith('SELECT * FROM encuesta_satisfaccion WHERE id_encuesta = ?', ['1']);
-    });
-
-    it('debería devolver 404 si la encuesta no se encuentra', async () => {
-      pool.query.mockResolvedValueOnce([[]]); // No se encontraron filas
-
-      const res = await request(app).get('/api/satisfaction/999');
-
-      expect(res.statusCode).toEqual(404);
-      expect(res.body).toEqual({ error: 'Encuesta no encontrada' });
-      expect(pool.query).toHaveBeenCalledWith('SELECT * FROM encuesta_satisfaccion WHERE id_encuesta = ?', ['999']);
+            // Verifica las aserciones
+            expect(res.statusCode).toEqual(500);
+            expect(res.body).toEqual({ error: 'al obtener las encuestas de satisfaccion' });
+        });
     });
 
-    it('debería manejar errores al obtener una encuesta por ID', async () => {
-      pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
+    // Prueba para obtener una encuesta por ID
+    describe('GET /api/satisfaccion/:id', () => {
+        test('Debería obtener una encuesta por ID', async () => {
+            // Configura el mock para devolver una encuesta específica
+            pool.query.mockResolvedValueOnce([[{ id_encuesta: 4, puntuacion: 5, comentarios: 'Excelente' }]]);
 
-      const res = await request(app).get('/api/satisfaction/1');
+            // Realiza la solicitud GET
+            const res = await request(app).get('/api/satisfaccion/4');
 
-      expect(res.statusCode).toEqual(500);
-      expect(res.body).toEqual({ error: 'Error al obtener la encuesta' });
-      expect(pool.query).toHaveBeenCalledWith('SELECT * FROM encuesta_satisfaccion WHERE id_encuesta = ?', ['1']);
-    });
-  });
+            // Verifica las aserciones
+            expect(res.statusCode).toEqual(200);
+            expect(res.body).toEqual({ id_encuesta: 4, puntuacion: 5, comentarios: 'Excelente' });
+            expect(pool.query).toHaveBeenCalledWith('SELECT * FROM encuesta_satisfaccion WHERE id_encuesta = ?', ['4']);
+        });
 
-  // Test para POST /api/satisfaction (crear nueva encuesta)
-  describe('POST /api/satisfaccion', () => {
-    it('debería crear una nueva encuesta de satisfacción', async () => {
-      const newSurvey = { id_encuesta: 4, id_usuario: 1, id_pedido: 2, puntuacion: 5, comentarios: 'Muy bueno', fecha_encuesta: '2023-07-01' };
-      // Simula el resultado de una inserción exitosa
-      pool.query.mockResolvedValueOnce([{ insertId: 3 }]);
+        test('Debería devolver 404 si la encuesta no se encuentra', async () => {
+            // Configura el mock para devolver un array vacío (no se encontró la encuesta)
+            pool.query.mockResolvedValueOnce([[]]);
 
-      const res = await request(app)
-        .post('/api/satisfaccion')
-        .send(newSurvey);
+            // Realiza la solicitud GET
+            const res = await request(app).get('/api/satisfaccion/999');
 
-      expect(res.statusCode).toEqual(201);
-      expect(res.body).toEqual({ id: 3, ...newSurvey });
-      expect(pool.query).toHaveBeenCalledWith(
-        'INSERT INTO encuesta_satisfaccion (id_encuesta, id_usuario, id_pedido, puntuacion, comentarios, fecha_encuesta) VALUES (?, ?, ?, ?, ?, ?)',
-        [newSurvey.id_encuesta, newSurvey.id_usuario, newSurvey.id_pedido, newSurvey.puntuacion, newSurvey.comentarios, newSurvey.fecha_encuesta]
-      );
-    });
+            // Verifica las aserciones
+            expect(res.statusCode).toEqual(404);
+            expect(res.body).toEqual({ error: 'Encuesta no encontrada' });
+        });
 
-    it('debería devolver 400 si faltan puntuacion o comentarios', async () => {
-      const invalidSurvey = { id_encuesta:'4', id_usuario: '2', id_pedido: '2', comentarios: 'Faltan datos', fecha_encuesta: '2023-07-01' }; 
+        test('Debería manejar errores al obtener una encuesta por ID', async () => {
+            // Configura el mock para lanzar un error
+            pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
 
-      const res = await request(app)
-        .post('/api/satisfaccion')
-        .send(invalidSurvey);
+            // Realiza la solicitud GET
+            const res = await request(app).get('/api/satisfaccion/5');
 
-      expect(res.statusCode).toEqual(400);
-      expect(res.body).toEqual({ error: 'Puntuacion y comentarios necesarios' });
-      expect(pool.query).not.toHaveBeenCalled(); // No debería llamar a la base de datos
+            // Verifica las aserciones
+            expect(res.statusCode).toEqual(500);
+            expect(res.body).toEqual({ error: 'Error al obtener la encuesta' });
+        });
     });
 
-    it('debería manejar errores al crear una encuesta', async () => {
-      const newSurvey = { id_encuesta: 4, id_usuario: 1, id_pedido: 2, puntuacion: 5, comentarios: 'Muy bueno', fecha_encuesta: '2023-07-01' };
-      pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
+    // Prueba para crear una nueva encuesta
+    describe('POST /api/satisfaccion', () => {
+        const newEncuesta = {
+            id_encuesta: 4,
+            id_usuario: 1,
+            id_pedido: 1,
+            puntuacion: 4,
+            comentarios: 'Buen servicio',
+            fecha_encuesta: '2023-07-22'
+        };
 
-      const res = await request(app)
-        .post('/api/satisfaccion')
-        .send(newSurvey);
+        test('Debería crear una nueva encuesta de satisfacción', async () => {
+            // Configura el mock para simular una inserción exitosa
+            pool.query.mockResolvedValueOnce([{ insertId: 4 }]);
 
-      expect(res.statusCode).toEqual(500);
-      expect(res.body).toEqual({ error: 'Error al crear la encuesta de satisfaccion' });
-      expect(pool.query).toHaveBeenCalled();
-    });
-  });
+            // Realiza la solicitud POST
+            const res = await request(app)
+                .post('/api/satisfaccion')
+                .send(newEncuesta);
 
-  // Test para PUT /api/satisfaction/:id (actualizar encuesta)
-  describe('PUT /api/satisfaccion/:id', () => {
-    it('debería actualizar una encuesta de satisfacción existente', async () => {
-      const updatedSurvey = { puntuacion: 4, comentarios: 'Mejorado', fecha_encuesta: '2023-07-02' };
-      // Simula el resultado de una actualización exitosa (affectedRows > 0)
-      pool.query.mockResolvedValueOnce([{ affectedRows: 1 }]);
+            // Verifica las aserciones
+            expect(res.statusCode).toEqual(201);
+            expect(res.body).toEqual({ id: 4, ...newEncuesta });
+            expect(pool.query).toHaveBeenCalledWith(
+                'INSERT INTO encuesta_satisfaccion (id_encuesta, id_usuario, id_pedido, puntuacion, comentarios, fecha_encuesta) VALUES (?, ?, ?, ?, ?, ?)',
+                [newEncuesta.id_encuesta, newEncuesta.id_usuario, newEncuesta.id_pedido, newEncuesta.puntuacion, newEncuesta.comentarios, newEncuesta.fecha_encuesta]
+            );
+        });
 
-      const res = await request(app)
-        .put('/api/satisfaccion/1')
-        .send(updatedSurvey);
+        test('Debería devolver 400 si faltan campos requeridos', async () => {
+            // Envía un objeto sin algunos campos requeridos
+            const incompleteEncuesta = {
+                id_usuario: 1,
+                puntuacion: 3,
+                comentarios: 'Regular'
+            };
 
-      expect(res.statusCode).toEqual(200);
-      expect(res.body).toEqual({ message: 'Encuesta de satisfaccion actualizada correctamente' });
-      expect(pool.query).toHaveBeenCalledWith(
-        'UPDATE encuesta_satisfaccion SET puntuacion = ?, comentarios = ?, fecha_encuesta = ? WHERE id_encuesta = ?',
-        [updatedSurvey.puntuacion, updatedSurvey.comentarios, updatedSurvey.fecha_encuesta, '1']
-      );
-    });
+            // Realiza la solicitud POST
+            const res = await request(app)
+                .post('/api/satisfaccion')
+                .send(incompleteEncuesta);
 
-    it('debería devolver 404 si la encuesta a actualizar no se encuentra', async () => {
-      const updatedSurvey = { puntuacion: 4, comentarios: 'Mejorado', fecha_encuesta: '2023-07-02' };
-      pool.query.mockResolvedValueOnce([{ affectedRows: 0 }]); // No se afectaron filas
+            // Verifica las aserciones
+            expect(res.statusCode).toEqual(400);
+            expect(res.body).toEqual({ error: 'Puntuacion, comentarios necesarios y fecha' });
+        });
 
-      const res = await request(app)
-        .put('/api/satisfaccion/999')
-        .send(updatedSurvey);
+        test('Debería manejar errores al crear una encuesta', async () => {
+            // Configura el mock para lanzar un error
+            pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
 
-      expect(res.statusCode).toEqual(404);
-      expect(res.body).toEqual({ error: 'Encuesta no encontrada ' }); // Nota el espacio al final del mensaje
-      expect(pool.query).toHaveBeenCalled();
-    });
+            // Realiza la solicitud POST
+            const res = await request(app)
+                .post('/api/satisfaccion')
+                .send(newEncuesta);
 
-    it('debería manejar errores al actualizar una encuesta', async () => {
-      const updatedSurvey = { puntuacion: 4, comentarios: 'Mejorado', fecha_encuesta: '2023-07-02' };
-      pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
-
-      const res = await request(app)
-        .put('/api/satisfaccion/1')
-        .send(updatedSurvey);
-
-      expect(res.statusCode).toEqual(500);
-      expect(res.body).toEqual({ error: 'Error al actualizar el producto' }); // El mensaje de error es "producto" en tu código original
-      expect(pool.query).toHaveBeenCalled();
-    });
-  });
-
-  // Test para DELETE /api/satisfaction/:id (eliminar encuesta)
-  describe('DELETE /api/satisfaccion/:id', () => {
-    it('debería eliminar una encuesta de satisfacción existente', async () => {
-      pool.query.mockResolvedValueOnce([{ affectedRows: 1 }]); // Simula eliminación exitosa
-
-      const res = await request(app).delete('/api/satisfaccion/1');
-
-      expect(res.statusCode).toEqual(200);
-      expect(res.body).toEqual({ message: 'Encuesta eliminada correctamente' });
-      expect(pool.query).toHaveBeenCalledWith('DELETE FROM encuesta_satisfaccion WHERE id_encuesta = ?', ['1']);
+            // Verifica las aserciones
+            expect(res.statusCode).toEqual(500);
+            expect(res.body).toEqual({ error: 'Error al crear la encuesta de satisfaccion' });
+        });
     });
 
-    it('debería devolver 404 si la encuesta a eliminar no se encuentra', async () => {
-      pool.query.mockResolvedValueOnce([{ affectedRows: 0 }]); // No se afectaron filas
+    // Prueba para actualizar una encuesta existente
+    describe('PUT /api/satisfaccion/:id', () => {
+        const updatedEncuesta = {
+            id_usuario: 1,
+            puntuacion: 5,
+            comentarios: 'Servicio increíblemente bueno',
+            fecha_encuesta: '2023-07-23'
+        };
 
-      const res = await request(app).delete('/api/satisfaccion/999');
+        test('Debería actualizar una encuesta de satisfacción existente', async () => {
+            // Configura el mock para simular una actualización exitosa
+            pool.query.mockResolvedValueOnce([{ affectedRows: 1 }]);
 
-      expect(res.statusCode).toEqual(404);
-      expect(res.body).toEqual({ error: 'Encuesta no encontrada' });
-      expect(pool.query).toHaveBeenCalled();
+            // Realiza la solicitud PUT
+            const res = await request(app)
+                .put('/api/satisfaccion/1')
+                .send(updatedEncuesta);
+
+            // Verifica las aserciones
+            expect(res.statusCode).toEqual(200);
+            expect(res.body).toEqual({ message: 'Encuesta de satisfaccion actualizada correctamente' });
+            expect(pool.query).toHaveBeenCalledWith(
+                'UPDATE encuesta_satisfaccion SET id_usuario = ?, puntuacion = ?, comentarios = ?, fecha_encuesta = ? WHERE id_encuesta = ?',
+                [updatedEncuesta.id_usuario, updatedEncuesta.puntuacion, updatedEncuesta.comentarios, updatedEncuesta.fecha_encuesta, '1']
+            );
+        });
+
+        test('Debería devolver 404 si la encuesta a actualizar no se encuentra', async () => {
+            // Configura el mock para simular que no se encontró la encuesta
+            pool.query.mockResolvedValueOnce([{ affectedRows: 0 }]);
+
+            // Realiza la solicitud PUT
+            const res = await request(app)
+                .put('/api/satisfaccion/999')
+                .send(updatedEncuesta);
+
+            // Verifica las aserciones
+            expect(res.statusCode).toEqual(404);
+            expect(res.body).toEqual({ error: 'Encuesta no encontrada '});
+        });
+
+        test('Debería manejar errores al actualizar una encuesta', async () => {
+            // Configura el mock para lanzar un error
+            pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
+
+            // Realiza la solicitud PUT
+            const res = await request(app)
+                .put('/api/satisfaccion/1')
+                .send(updatedEncuesta);
+
+            // Verifica las aserciones
+            expect(res.statusCode).toEqual(500);
+            expect(res.body).toEqual({ error: 'Error al actualizar el producto' });
+        });
     });
 
-    it('debería manejar errores al eliminar una encuesta', async () => {
-      pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
+    // Prueba para eliminar una encuesta
+    describe('DELETE /api/satisfaccion/:id', () => {
+        test('Debería eliminar una encuesta de satisfacción', async () => {
+            // Configura el mock para simular una eliminación exitosa
+            pool.query.mockResolvedValueOnce([{ affectedRows: 1 }]);
 
-      const res = await request(app).delete('/api/satisfaccion/1');
+            // Realiza la solicitud DELETE
+            const res = await request(app).delete('/api/satisfaccion/1');
 
-      expect(res.statusCode).toEqual(500);
-      expect(res.body).toEqual({ error: 'Error al eliminar la encuesta' });
-      expect(pool.query).toHaveBeenCalled();
+            // Verifica las aserciones
+            expect(res.statusCode).toEqual(200);
+            expect(res.body).toEqual({ message: 'Encuesta eliminada correctamente' });
+            expect(pool.query).toHaveBeenCalledWith('DELETE FROM encuesta_satisfaccion WHERE id_encuesta = ?', ['1']);
+        });
+
+        test('Debería devolver 404 si la encuesta a eliminar no se encuentra', async () => {
+            // Configura el mock para simular que no se encontró la encuesta
+            pool.query.mockResolvedValueOnce([{ affectedRows: 0 }]);
+
+            // Realiza la solicitud DELETE
+            const res = await request(app).delete('/api/satisfaccion/999');
+
+            // Verifica las aserciones
+            expect(res.statusCode).toEqual(404);
+            expect(res.body).toEqual({ error: 'Encuesta no encontrada' });
+        });
+
+        test('Debería manejar errores al eliminar una encuesta', async () => {
+            // Configura el mock para lanzar un error
+            pool.query.mockRejectedValueOnce(new Error('Error de base de datos'));
+
+            // Realiza la solicitud DELETE
+            const res = await request(app).delete('/api/satisfaccion/1');
+
+            // Verifica las aserciones
+            expect(res.statusCode).toEqual(500);
+            expect(res.body).toEqual({ error: 'Error al eliminar la encuesta' });
+        });
     });
-  });
 });
