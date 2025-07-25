@@ -1,25 +1,20 @@
-// Importa las librerías necesarias para las pruebas
 import request from 'supertest';
 import express from 'express';
-import { pool } from '../db.js'; // Asegúrate de que la ruta a tu archivo db.js sea correcta
+import { pool } from '../db.js'; 
+import ventaRoutes from '../routes/venta.routes.js';
 
-// Importa el router que quieres probar
-import ventaRoutes from '../routes/venta.routes.js'; // Asegúrate de que la ruta sea correcta
 
-// Mockea el módulo 'db.js' para controlar las respuestas de la base de datos
 jest.mock('../db.js', () => ({
     pool: {
-        query: jest.fn(), // Mockea la función query del pool
+        query: jest.fn(),
     },
 }));
 
-// Crea una aplicación Express para las pruebas
 const app = express();
 app.use(express.json()); // Habilita el parsing de JSON en el cuerpo de las solicitudes
 app.use('/api/venta', ventaRoutes); // Monta el router en una ruta base
 
 describe('API de Venta', () => {
-    // Limpia los mocks antes de cada prueba
     beforeEach(() => {
         pool.query.mockClear();
     });
@@ -158,7 +153,6 @@ describe('API de Venta', () => {
             expect(res.body).toEqual({ error: 'Error al crear la venta' });
         });
     });
-
 
     // Prueba para actualizar una venta existente
     describe('PUT /api/venta/:id', () => {

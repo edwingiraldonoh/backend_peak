@@ -1,15 +1,11 @@
-// Import necessary libraries for testing
 import request from 'supertest';
 import express from 'express';
-import { pool } from '../db.js'; // Ensure the path to your db.js file is correct
+import { pool } from '../db.js'; 
+import informeRoutes from '../routes/informe_inventario.Routes.js';
 
-// Import the router you want to test
-import informeRoutes from '../routes/informe_inventario.Routes.js'; // Ensure the path is correct
-
-// Mock the 'db.js' module to control database responses
 jest.mock('../db.js', () => ({
     pool: {
-        query: jest.fn(), // Mock the query function of the pool
+        query: jest.fn(), 
     },
 }));
 
@@ -26,7 +22,7 @@ describe('API de Informe de Inventario', () => {
 
     // Test for getting all inventory reports
     describe('GET /api/informe_inventario', () => {
-        test('Should get all inventory reports', async () => {
+        test('Debería obtener todos los informes de inventario', async () => {
             // Configure the mock to return inventory report data
             pool.query.mockResolvedValueOnce([[{ id_informe: 1, descripcion_informe: 'Informe mensual' }]]);
 
@@ -39,7 +35,7 @@ describe('API de Informe de Inventario', () => {
             expect(pool.query).toHaveBeenCalledWith('SELECT * FROM informe_inventario');
         });
 
-        test('Should handle errors when getting inventory reports', async () => {
+        test('Se deben gestionar los errores al obtener informes de inventario', async () => {
             // Configure the mock to throw an error
             pool.query.mockRejectedValueOnce(new Error('Database error'));
 
@@ -54,7 +50,7 @@ describe('API de Informe de Inventario', () => {
 
     // Test for getting an inventory report by ID
     describe('GET /api/informe_inventario/:id', () => {
-        test('Should get an inventory report by ID', async () => {
+        test('Debería obtener un informe de inventario por ID', async () => {
             // Configure the mock to return a specific inventory report
             pool.query.mockResolvedValueOnce([[{ id_informe: 4, descripcion_informe: 'Informe mensual' }]]);
 
@@ -67,7 +63,7 @@ describe('API de Informe de Inventario', () => {
             expect(pool.query).toHaveBeenCalledWith('SELECT * FROM informe_inventario WHERE id_informe = ?', ['4']);
         });
 
-        test('Should return 404 if the inventory report is not found', async () => {
+        test('Debería devolver 404 si no se encuentra el informe de inventario', async () => {
             // Configure the mock to return an empty array (report not found)
             pool.query.mockResolvedValueOnce([[]]);
 
@@ -79,7 +75,7 @@ describe('API de Informe de Inventario', () => {
             expect(res.body).toEqual({ error: 'Informe no encontrado' });
         });
 
-        test('Should handle errors when getting an inventory report by ID', async () => {
+        test('Se deben gestionar los errores al obtener un informe de inventario por ID', async () => {
             // Configure the mock to throw an error
             pool.query.mockRejectedValueOnce(new Error('Database error'));
 
@@ -101,7 +97,7 @@ describe('API de Informe de Inventario', () => {
             descripcion_informe: 'Nuevo informe de inventario'
         };
 
-        test('Should create a new inventory report', async () => {
+        test('Debería crear un nuevo informe de inventario', async () => {
             // Configure the mock to simulate a successful insertion
             pool.query.mockResolvedValueOnce([{ insertId: 4 }]);
 
@@ -119,7 +115,7 @@ describe('API de Informe de Inventario', () => {
             );
         });
 
-        test('Should return 400 if required fields are missing', async () => {
+        test('Debe devolver 400 si faltan los campos obligatorios', async () => {
             // Send an object with some required fields missing
             const incompleteInforme = {
                 id_inventario: 100,
@@ -136,7 +132,7 @@ describe('API de Informe de Inventario', () => {
             expect(res.body).toEqual({ error: 'La descripcion es necesaria' });
         });
 
-        test('Should handle errors when creating an inventory report', async () => {
+        test('Debe gestionar errores al crear un informe de inventario', async () => {
             // Configure the mock to throw an error
             pool.query.mockRejectedValueOnce(new Error('Database error'));
 
@@ -159,7 +155,7 @@ describe('API de Informe de Inventario', () => {
             descripcion_informe: 'Informe de inventario actualizado'
         };
 
-        test('Should update an existing inventory report', async () => {
+        test('Debería actualizar un informe de inventario existente', async () => {
             // Configure the mock to simulate a successful update
             pool.query.mockResolvedValueOnce([{ affectedRows: 4 }]);
 
@@ -177,7 +173,7 @@ describe('API de Informe de Inventario', () => {
             );
         });
 
-        test('Should return 404 if the inventory report to update is not found', async () => {
+        test('Debería devolver 404 si no se encuentra el informe de inventario para actualizar', async () => {
             // Configure the mock to simulate that the report was not found
             pool.query.mockResolvedValueOnce([{ affectedRows: 0 }]);
 
@@ -191,7 +187,7 @@ describe('API de Informe de Inventario', () => {
             expect(res.body).toEqual({ error: 'Informe no encontrado '});
         });
 
-        test('Should handle errors when updating an inventory report', async () => {
+        test('Debe gestionar errores al actualizar un informe de inventario', async () => {
             // Configure the mock to throw an error
             pool.query.mockRejectedValueOnce(new Error('Database error'));
 
@@ -208,7 +204,7 @@ describe('API de Informe de Inventario', () => {
 
     // Test for deleting an inventory report
     describe('DELETE /api/informe_inventario/:id', () => {
-        test('Should delete an inventory report', async () => {
+        test('Debería eliminar un informe de inventario', async () => {
             // Configure the mock to simulate a successful deletion
             pool.query.mockResolvedValueOnce([{ affectedRows: 1 }]);
 
@@ -221,7 +217,7 @@ describe('API de Informe de Inventario', () => {
             expect(pool.query).toHaveBeenCalledWith('DELETE FROM informe_inventario WHERE id_informe = ?', ['4']);
         });
 
-        test('Should return 404 if the inventory report to delete is not found', async () => {
+        test('Debería devolver 404 si no se encuentra el informe de inventario que se va a eliminar', async () => {
             // Configure the mock to simulate that the report was not found
             pool.query.mockResolvedValueOnce([{ affectedRows: 0 }]);
 
@@ -233,7 +229,7 @@ describe('API de Informe de Inventario', () => {
             expect(res.body).toEqual({ error: 'Informe no encontrado' });
         });
 
-        test('Should handle errors when deleting an inventory report', async () => {
+        test('Debería gestionar errores al eliminar un informe de inventario', async () => {
             // Configure the mock to throw an error
             pool.query.mockRejectedValueOnce(new Error('Database error'));
 

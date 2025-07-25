@@ -1,3 +1,4 @@
+//Backend
 import express from 'express';
 import morgan from 'morgan';
 import cors from 'cors';
@@ -13,7 +14,7 @@ import usuariosRoutes from './src/routes/usuarios.routes.js'
 import ventaRoutes from './src/routes/venta.routes.js'
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
 app.use(morgan('dev'));
 app.use(express.json());
@@ -37,21 +38,8 @@ app.use('/api/venta', ventaRoutes)
 
 
 app.listen(PORT, () => {
-    console.log('Servidor ejecutandose en http://localhost:3000')
+    console.log('Servidor ejecutandose en http://localhost:3001')
 });
 
 export default app; 
-
-// import express from 'express';
-// // Asegúrate de que esta ruta sea correcta para tu archivo de rutas
-// import encuestaRoutes from './src/routes/encuesta_satisfaccion.routes.js'; 
-
-// const app = express();
-// app.use(express.json()); // Necesario para parsear el body de las peticiones JSON (POST/PUT)
-
-// // Monta tus rutas bajo el prefijo '/api/satisfaction'
-// // Esto significa que una petición GET a '/' en tu router se alcanzará en '/api/satisfaction/'
-// app.use('/api/satisfaction', encuestaRoutes); 
-
-// export default app; // Exporta la app para que Supertest pueda usarla
 

@@ -1,15 +1,11 @@
-// Importa las librerías necesarias para las pruebas
 import request from 'supertest';
 import express from 'express';
-import { pool } from '../db.js'; // Asegúrate de que la ruta a tu archivo db.js sea correcta
-
-// Importa el router que quieres probar
+import { pool } from '../db.js';
 import encuestaRoutes from '../routes/encuesta_satisfaccion.routes.js';
 
-// Mockea el módulo 'db.js' para controlar las respuestas de la base de datos
 jest.mock('../db.js', () => ({
     pool: {
-        query: jest.fn(), // Mockea la función query del pool
+        query: jest.fn(),
     },
 }));
 

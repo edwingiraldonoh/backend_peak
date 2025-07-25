@@ -1,25 +1,20 @@
-// Importa las librerías necesarias para las pruebas
 import request from 'supertest';
 import express from 'express';
-import { pool } from '../db.js'; // Asegúrate de que la ruta a tu archivo db.js sea correcta
+import { pool } from '../db.js';
+import productosRoutes from '../routes/productos.routes.js'; 
 
-// Importa el router que quieres probar
-import productosRoutes from '../routes/productos.routes.js'; // Asegúrate de que la ruta sea correcta
-
-// Mockea el módulo 'db.js' para controlar las respuestas de la base de datos
 jest.mock('../db.js', () => ({
     pool: {
-        query: jest.fn(), // Mockea la función query del pool
+        query: jest.fn(), 
     },
 }));
 
 // Crea una aplicación Express para las pruebas
 const app = express();
 app.use(express.json()); // Habilita el parsing de JSON en el cuerpo de las solicitudes
-app.use('/api/productos', productosRoutes); // Monta el router en una ruta base
+app.use('/api/productos', productosRoutes);
 
 describe('API de Productos', () => {
-    // Limpia los mocks antes de cada prueba
     beforeEach(() => {
         pool.query.mockClear();
     });
